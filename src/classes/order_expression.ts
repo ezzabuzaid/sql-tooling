@@ -1,7 +1,8 @@
 import { OrderByColumn } from "./column.identifier";
-import { Expression, ExpressionVarient } from "./expression";
+import { Expression } from "./expression";
+import { Varient } from "./varient";
 
 export class OrderExpression extends Expression {
-	public override varient: ExpressionVarient = "order";
+	public override varient: Varient = "order";
 	public columns: OrderByColumn[] = [];
 }

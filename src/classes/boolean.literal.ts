@@ -1,5 +1,6 @@
-import { Literal, LiteralVarient } from "./literal";
+import { Literal } from "./literal";
+import { Varient } from "./varient";
 
 export class BooleanLiteral extends Literal {
-	public override varient: LiteralVarient = "boolean";
+	public override varient: Varient = "boolean";
 }

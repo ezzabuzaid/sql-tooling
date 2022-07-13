@@ -1,3 +1,4 @@
+import { BinaryExpression } from "./classes/binary.expression";
 import { CallExpression, NameIdentifier } from "./classes/call.expression";
 import {
 	ColumnIdentifier,
@@ -5,19 +6,16 @@ import {
 	OrderByDirection,
 } from "./classes/column.identifier";
 import { Expression } from "./classes/expression";
+import { GroupingExpression } from "./classes/grouping.expression";
 import { GroupExpression } from "./classes/group_expression";
-import { IntLiteral } from "./classes/int.literal";
 import { LimitExpression } from "./classes/limit.expression";
-import {
-	BinaryExpression,
-	GroupingExpression,
-	ListExpression,
-	LiteralExpression,
-	UnaryExpression,
-} from "./classes/operation_expression";
+import { ListExpression } from "./classes/list.expression";
+import { LiteralExpression } from "./classes/literal.expression";
+import { NumericLiteral } from "./classes/numeric.literal";
 import { OrderExpression } from "./classes/order_expression";
 import { SelectStatement } from "./classes/select_statements";
 import { TableIdentifier } from "./classes/table.identifier";
+import { UnaryExpression } from "./classes/unary.expression";
 import { UnknownToken } from "./errors/unknown_token.error";
 import { IToken, TokenType } from "./tokenizer";
 
@@ -69,14 +67,14 @@ export class Parser {
 				case TokenType.OFFSET:
 					token = this._advance();
 					if (selectStatement.limit) {
-						selectStatement.limit.offset = new IntLiteral(token.lexeme);
+						selectStatement.limit.offset = new NumericLiteral(token.lexeme);
 					}
 					break;
 				// throw an error if not found
 				case TokenType.LIMIT:
 					token = this._advance();
 					selectStatement.limit = new LimitExpression(
-						new IntLiteral(token.lexeme)
+						new NumericLiteral(token.lexeme)
 					);
 					break;
 				case TokenType.DISTINCT:

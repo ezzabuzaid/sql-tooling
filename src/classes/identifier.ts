@@ -1,5 +1,6 @@
-export type IdentifierVarient = "column" | "table" | "name";
-export abstract class Identifier {
-	public type = "identifier";
-	public abstract varient: IdentifierVarient;
+import { Varient } from "./varient";
+
+export class Identifier {
+	public varient!: Varient;
+	constructor(public text: string) {}
 }

@@ -1,13 +1,11 @@
-export type LiteralVarient =
-	| "string"
-	| "double"
-	| "int"
-	| "float"
-	| "decimal"
-	| "boolean";
-export abstract class Literal {
-	public type = "literal";
-	public abstract varient: LiteralVarient;
+import { Expression } from "./expression";
+import { Varient } from "./varient";
 
-	constructor(public value: string) {}
+export abstract class Literal extends Expression {
+	public override type = "literal";
+	public abstract override varient: Varient;
+
+	constructor(public value: string) {
+		super();
+	}
 }

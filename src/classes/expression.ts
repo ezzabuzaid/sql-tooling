@@ -1,12 +1,6 @@
-export type ExpressionVarient =
-	| "list"
-	| "limit"
-	| "call"
-	| "where"
-	| "group"
-	| "order"
-	| "operation";
+import { Varient } from "./varient";
+
 export abstract class Expression {
 	public type = "expression";
-	public abstract varient: ExpressionVarient;
+	public abstract varient: Varient;
 }

@@ -1,8 +1,9 @@
-import { Identifier, IdentifierVarient } from "./identifier";
+import { Identifier } from "./identifier";
+import { Varient } from "./varient";
 
 export class TableIdentifier extends Identifier {
-	public override varient: IdentifierVarient = "table";
-	constructor(public name: string) {
+	public override varient: Varient = "table";
+	constructor(public text: string) {
 		super();
 	}
 }

@@ -1,9 +1,10 @@
-import { Identifier, IdentifierVarient } from "./identifier";
+import { Identifier } from "./identifier";
+import { Varient } from "./varient";
 
 export class ColumnIdentifier extends Identifier {
-	public override varient: IdentifierVarient = "column";
-	constructor(public name: string, public alias?: string) {
-		super();
+	public override varient: Varient = "column";
+	constructor(public override text: string, public alias?: string) {
+		super(text);
 	}
 }
 
