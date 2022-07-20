@@ -1,11 +1,11 @@
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
-SELECT *
-  FROM tutorial.billboard_top_100_year_end
- WHERE year_rank BETWEEN 5 AND 10
-`;
-
+			SELECT *
+			FROM tutorial
+			WHERE year = 2013
+			AND artist IS NOT NULL
+      `;
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 console.log(tokens);
@@ -16,9 +16,11 @@ console.log(JSON.stringify(ast, null, 2));
 
 // expression   → equality;
 // equality     → comparison ( ( "!=" | "==" ) comparison )* ;
-// comparison   → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+// comparison   → range ( ( ">" | ">=" | "<" | "<=" ) range )* ;
+// range        → term ( ( "NOT BETWEEN" | "IN" | "LIKE" | "ILIKE" | "SIMILAR" ) term )* ;
 // term         → factor ( ( "-" | "+" ) factor )* ;
 // factor       → unary ( ( "/" | "*" ) unary )* ;
-// unary        → ( "!" | "-" ) unary | primary ;
-// primary      → NUMBER | STRING | "true" | "false"
-//              | "(" expression ")" ;
+// unary        → ( "NOT" | "-" ) unary | call;
+// call         → primary ( "(" (arguments?) ")" )*;
+// primary      → IDENTIFIER | NUMBER | STRING | NULL | "true" | "false" | "(" expression ")";
+// arguments    → expression | ("," expression)*

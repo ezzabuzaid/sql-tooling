@@ -29,9 +29,11 @@ export enum TokenType {
 	IDENTIFIER,
 	STRING,
 	NUMBER,
+	FALSE,
+	TRUE,
 
 	// Keywords.
-	KEYWORD = 300 * 3, // Marker
+	KEYWORD = 300 * 3,
 	SELECT,
 	FROM,
 	AS,
@@ -54,27 +56,22 @@ export enum TokenType {
 	VALUES,
 	IS,
 	NULL,
+	ALL,
+	EXISTS,
 
 	// Clauses
-	CALUSES = 300 * 4, // Marker
+	CALUSES = 300 * 4,
 	ORDER,
 	GROUP,
+	HAVING,
 
-	// Functions
-	FUNCTIONS = 300 * 5, // Marker
-	COUNT,
-	SUM,
+	// // Functions
+	// FUNCTIONS = 300 * 5,
+	// COUNT,
+	// SUM,
 
 	// Others
 	EOF = -1,
-}
-
-export function isKeyword(type: TokenType) {
-	return (
-		type >= TokenType.KEYWORD &&
-		type < TokenType.KEYWORD + 300 &&
-		!!TokenType[type]
-	);
 }
 
 enum GroupType {
@@ -89,7 +86,7 @@ const singleChar: Record<string, TokenType> = {
 	"*": TokenType.STAR,
 	";": TokenType.SEMICOLON,
 	".": TokenType.DOT,
-	"=": TokenType.EQUAL,
+	"=": TokenType.EQUAL_EQUAL,
 	"==": TokenType.EQUAL_EQUAL,
 	"<>": TokenType.NOT_EQUAL,
 	"!=": TokenType.NOT_EQUAL,
@@ -110,12 +107,12 @@ const keywords: Record<string, TokenType> = {
 	asc: TokenType.ASC,
 	order: TokenType.ORDER,
 	group: TokenType.GROUP,
+	having: TokenType.HAVING,
 	where: TokenType.WHERE,
 	and: TokenType.AND,
 	or: TokenType.OR,
 	not: TokenType.NOT,
-	count: TokenType.COUNT,
-	sum: TokenType.SUM,
+	all: TokenType.ALL,
 	distinct: TokenType.DISTINCT,
 	limit: TokenType.LIMIT,
 	offset: TokenType.OFFSET,
@@ -125,7 +122,10 @@ const keywords: Record<string, TokenType> = {
 	null: TokenType.NULL,
 	in: TokenType.IN,
 	similar: TokenType.SIMILAR,
-	BETWEEN: TokenType.BETWEEN,
+	between: TokenType.BETWEEN,
+	true: TokenType.FALSE,
+	false: TokenType.TRUE,
+	exists: TokenType.EXISTS,
 };
 
 export interface IToken {
@@ -165,9 +165,25 @@ export class Tokenizer {
 						lexeme: this.program.substring(start, this._current),
 					});
 					break;
+				case "<":
+					if (this._peek() === ">") {
+						// not operator
+						this._advance();
+						const lexeme = this.program.substring(start, this._current + 1);
+						tokens.push({
+							type: singleChar[lexeme],
+							line: line,
+							start: start,
+							end: this._current,
+							lexeme: lexeme,
+						});
+						this._advance();
+						break;
+					}
+				// it is comparison then
 				case "=":
 				case ">":
-				case "<":
+				case "!":
 					const isSingleChar = this._peek() !== "=";
 					this._advance();
 					const lexeme = this.program.substring(
