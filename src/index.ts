@@ -1,3 +1,5 @@
+import { Factory } from "./factory/factory";
+import { PrintInterpreter } from "./interpreter/print.interpreter";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
@@ -8,12 +10,29 @@ const program = `
       `;
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
-console.log(tokens);
+// console.log(tokens);
 
 const parser = new Parser(tokens);
 const ast = parser.parse();
-console.log(JSON.stringify(ast, null, 2));
-
+const print = new PrintInterpreter();
+const factory = new Factory();
+console.log(
+	print.print(
+		factory.createBinaryExpression(
+			factory.createBinaryExpression(
+				factory.createIdentifier("year_rank"),
+				factory.createIdentifier(">="),
+				factory.createNumericLiteral("5")
+			),
+			factory.createIdentifier("and"),
+			factory.createUnaryExpression(
+				factory.createIdentifier("-"),
+				factory.createNumericLiteral("10")
+			)
+		)
+	)
+);
+// console.log(JSON.stringify(ast, null, 2));
 // expression   → equality;
 // equality     → comparison ( ( "!=" | "==" ) comparison )* ;
 // comparison   → range ( ( ">" | ">=" | "<" | "<=" ) range )* ;

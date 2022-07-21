@@ -1,3 +1,4 @@
+import { Visitor } from "../interpreter/visitor";
 import { Expression } from "./expression";
 import { GroupExpression } from "./group_expression";
 import { Identifier } from "./identifier";
@@ -15,4 +16,8 @@ export class SelectStatement extends Statement {
 	public distinct?: boolean = undefined;
 	public all?: boolean = undefined;
 	public limit?: Expression;
+
+	public override accept<R>(visitor: Visitor<R>): R {
+		throw new Error("Method not implemented.");
+	}
 }

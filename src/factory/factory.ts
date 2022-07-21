@@ -9,7 +9,6 @@ import { GroupingExpression } from "../classes/grouping.expression";
 import { Identifier } from "../classes/identifier";
 import { LimitExpression } from "../classes/limit.expression";
 import { Literal } from "../classes/literal";
-import { LiteralExpression } from "../classes/literal.expression";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { OrderExpression } from "../classes/order_expression";
 import { SelectStatement } from "../classes/select_statements";
@@ -34,7 +33,7 @@ export class Factory {
 		return expression;
 	}
 	public createSelectStatement(
-		columns: Expression[],
+		columns: (Expression | Identifier)[],
 		from: Expression,
 		where?: Expression,
 		order?: Expression,
@@ -65,9 +64,9 @@ export class Factory {
 		return new NumericLiteral(name);
 	}
 
-	public createLiteralExpression(identifier: Identifier): Expression {
-		return new LiteralExpression(identifier);
-	}
+	// public createLiteralExpression(identifier: Identifier): Expression {
+	// 	return new LiteralExpression(identifier);
+	// }
 
 	public createLimitExpression(literal: Literal): Expression {
 		return new LimitExpression(literal);
