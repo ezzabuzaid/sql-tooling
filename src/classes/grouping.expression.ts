@@ -9,6 +9,9 @@ export class GroupingExpression extends Expression {
 		super();
 	}
 	public override accept<R>(visitor: Visitor<R>): R {
+		return visitor.visitGroupingExpr(this);
+	}
+	public override toLiteral<R>(): string {
 		throw new Error("Method not implemented.");
 	}
 }

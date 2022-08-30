@@ -1,7 +1,7 @@
 import { IToken, TokenType } from "../tokenizer";
 
 export class UnknownToken extends Error {
-	constructor(token: IToken) {
+	constructor(token: IToken<TokenType>) {
 		super(
 			`Unknown token - Type: ${token.type} - Type Name: ${
 				TokenType[token.type]

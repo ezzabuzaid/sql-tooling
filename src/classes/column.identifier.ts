@@ -21,4 +21,7 @@ export class OrderByColumn extends Expression {
 	public override accept<R>(visitor: Visitor<R>): R {
 		throw new Error("Method not implemented.");
 	}
+	public override toLiteral<R>(): string {
+		throw new Error("Method not implemented.");
+	}
 }

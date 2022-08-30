@@ -5,5 +5,6 @@ export abstract class Expression {
 	public abstract varient: Varient;
 	public alias?: string;
 
-	public abstract accept<R>(visitor: Visitor<R>): R;
+	public abstract accept<R>(visitor: Visitor<R>, context?: any): R;
+	public abstract toLiteral(): string;
 }

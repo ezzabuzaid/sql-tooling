@@ -8,7 +8,11 @@ export class CallExpression extends Expression {
 		super();
 	}
 
-	public override accept<R>(visitor: Visitor<R>): R {
-		throw new Error("Method not implemented.");
+	public override accept<R>(visitor: Visitor<R>, context: any): R {
+		return visitor.visitCallExpr(this, context);
+	}
+
+	public override toLiteral(): string {
+		return `${this.callee.toLiteral()}(${this.args[0].toLiteral()})`;
 	}
 }

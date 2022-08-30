@@ -8,4 +8,7 @@ export class Identifier {
 	public accept<R>(visitor: Visitor<R>): R {
 		return visitor.visitIdentifier(this);
 	}
+	public toLiteral(): string {
+		return this.text;
+	}
 }

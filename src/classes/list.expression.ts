@@ -9,7 +9,12 @@ export class ListExpression extends Expression {
 	constructor() {
 		super();
 	}
+
 	public override accept<R>(visitor: Visitor<R>): R {
+		throw new Error("Method not implemented.");
+	}
+
+	public toLiteral(): string {
 		throw new Error("Method not implemented.");
 	}
 }

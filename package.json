@@ -14,7 +14,9 @@
 		"jest": "^28.1.2",
 		"nodemon": "^2.0.19",
 		"rxjs": "^7.5.5",
-		"ts-node": "^10.8.2"
+		"ts-node": "^10.8.2",
+		"xhr2": "^0.2.1",
+		"xmlhttprequest": "^1.8.0"
 	},
 	"devDependencies": {
 		"@types/jest": "^28.1.6",

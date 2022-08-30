@@ -1,148 +1,89 @@
 import { UnknownChar } from "./errors/unknown_char.error";
+import { getKeyByValue, keywords, singleChar } from "./factory/factory";
 export enum TokenType {
 	// Single-character tokens.
 	SINGLE_CHAR = 1,
-	COMMA,
-	LEFT_PAREN,
-	RIGHT_PAREN,
-	DOT,
-	SEMICOLON,
-	PLUS,
-	MINUS,
-	STAR,
-	SLASH,
-	MODULO,
+	COMMA = 2,
+	LEFT_PAREN = 3,
+	RIGHT_PAREN = 4,
+	DOT = 5,
+	SEMICOLON = 6,
+	PLUS = 7,
+	MINUS = 8,
+	STAR = 9,
+	SLASH = 10,
+	MODULO = 11,
 
 	// One or two character tokens.
 	MAYBE_DOUBLE_CHAR = 300,
-	BANG,
-	NOT_EQUAL,
-	EQUAL,
-	EQUAL_EQUAL,
-	GREATER,
-	GREATER_EQUAL,
-	LESS,
-	LESS_EQUAL,
+	BANG = 301,
+	NOT_EQUAL = 302,
+	EQUAL_EQUAL = 303,
+	GREATER = 304,
+	GREATER_EQUAL = 305,
+	LESS = 306,
+	LESS_EQUAL = 307,
 
 	// Literals.
-	LITERALS = 300 * 2,
-	IDENTIFIER,
-	STRING,
-	NUMBER,
-	FALSE,
-	TRUE,
+	IDENTIFIER = 601,
+	STRING = 602,
+	NUMBER = 603,
+	FALSE = 604,
+	TRUE = 605,
 
 	// Keywords.
-	KEYWORD = 300 * 3,
-	SELECT,
-	FROM,
-	AS,
-	BY,
-	ASC,
-	DESC,
-	WHERE,
-	LIKE,
-	ILIKE,
-	BETWEEN,
-	SIMILAR,
-	IN,
-	DISTINCT,
-	LIMIT,
-	OFFSET,
-	AND,
-	OR,
-	NOT,
-	INSERT,
-	VALUES,
-	IS,
-	NULL,
-	ALL,
-	EXISTS,
+	SELECT = 901,
+	FROM = 902,
+	AS = 903,
+	BY = 904,
+	ASC = 905,
+	DESC = 906,
+	WHERE = 907,
+	LIKE = 908,
+	ILIKE = 909,
+	BETWEEN = 910,
+	SIMILAR = 911,
+	IN = 912,
+	DISTINCT = 913,
+	LIMIT = 914,
+	OFFSET = 915,
+	AND = 916,
+	OR = 917,
+	NOT = 918,
+	NOT_BETWEEN = 919,
+	IS_NOT = 920,
+	NOT_ILIKE = 921,
+	NOT_LIKE = 922,
+	INSERT = 919,
+	VALUES = 920,
+	IS = 921,
+	NULL = 922,
+	ALL = 923,
+	EXISTS = 924,
 
 	// Clauses
-	CALUSES = 300 * 4,
-	ORDER,
-	GROUP,
-	HAVING,
-
-	// // Functions
-	// FUNCTIONS = 300 * 5,
-	// COUNT,
-	// SUM,
+	ORDER = 1201,
+	GROUP = 1202,
+	HAVING = 1203,
 
 	// Others
 	EOF = -1,
 }
 
-enum GroupType {
-	KEYWORD,
-}
-const singleChar: Record<string, TokenType> = {
-	",": TokenType.COMMA,
-	"(": TokenType.LEFT_PAREN,
-	")": TokenType.RIGHT_PAREN,
-	"+": TokenType.PLUS,
-	"-": TokenType.MINUS,
-	"*": TokenType.STAR,
-	";": TokenType.SEMICOLON,
-	".": TokenType.DOT,
-	"=": TokenType.EQUAL_EQUAL,
-	"==": TokenType.EQUAL_EQUAL,
-	"<>": TokenType.NOT_EQUAL,
-	"!=": TokenType.NOT_EQUAL,
-	"<": TokenType.LESS,
-	"<=": TokenType.LESS_EQUAL,
-	">": TokenType.GREATER,
-	">=": TokenType.GREATER_EQUAL,
-	"/": TokenType.SLASH,
-	"%": TokenType.MODULO,
-};
-
-const keywords: Record<string, TokenType> = {
-	as: TokenType.AS,
-	by: TokenType.BY,
-	select: TokenType.SELECT,
-	from: TokenType.FROM,
-	desc: TokenType.DESC,
-	asc: TokenType.ASC,
-	order: TokenType.ORDER,
-	group: TokenType.GROUP,
-	having: TokenType.HAVING,
-	where: TokenType.WHERE,
-	and: TokenType.AND,
-	or: TokenType.OR,
-	not: TokenType.NOT,
-	all: TokenType.ALL,
-	distinct: TokenType.DISTINCT,
-	limit: TokenType.LIMIT,
-	offset: TokenType.OFFSET,
-	like: TokenType.LIKE,
-	ilike: TokenType.ILIKE,
-	is: TokenType.IS,
-	null: TokenType.NULL,
-	in: TokenType.IN,
-	similar: TokenType.SIMILAR,
-	between: TokenType.BETWEEN,
-	true: TokenType.FALSE,
-	false: TokenType.TRUE,
-	exists: TokenType.EXISTS,
-};
-
-export interface IToken {
-	type: TokenType;
-	groupType?: GroupType;
-	start: number;
-	end: number;
-	line: number;
+export interface IToken<T extends TokenType> {
+	type: T;
 	lexeme: string;
+	start?: number;
+	end?: number;
+	line?: number;
 }
 
 export class Tokenizer {
 	private _current = 0;
+	private _tokens: IToken<TokenType>[] = [];
 	constructor(private program: string) {}
 
 	tokenize() {
-		const tokens: IToken[] = [];
 		let line = 0;
 		while (this.program.length > this._current) {
 			const char = this.program[this._current];
@@ -157,7 +98,7 @@ export class Tokenizer {
 				case "*":
 				case "%":
 					this._advance();
-					tokens.push({
+					this._tokens.push({
 						type: singleChar[char],
 						line: line,
 						start: start,
@@ -170,7 +111,7 @@ export class Tokenizer {
 						// not operator
 						this._advance();
 						const lexeme = this.program.substring(start, this._current + 1);
-						tokens.push({
+						this._tokens.push({
 							type: singleChar[lexeme],
 							line: line,
 							start: start,
@@ -190,7 +131,7 @@ export class Tokenizer {
 						start,
 						isSingleChar ? this._current : this._current + 1
 					);
-					tokens.push({
+					this._tokens.push({
 						type: singleChar[lexeme],
 						line: line,
 						start: start,
@@ -209,7 +150,7 @@ export class Tokenizer {
 						break;
 					} else {
 						this._advance();
-						tokens.push({
+						this._tokens.push({
 							type: TokenType.MINUS,
 							line: line,
 							start: start,
@@ -230,7 +171,7 @@ export class Tokenizer {
 					break;
 				case "'":
 				case '"':
-					tokens.push({
+					this._tokens.push({
 						type: TokenType.STRING,
 						line: line,
 						start: start,
@@ -240,7 +181,7 @@ export class Tokenizer {
 					break;
 				default:
 					if (this._isDigit(char)) {
-						tokens.push({
+						this._tokens.push({
 							type: TokenType.NUMBER,
 							line: line,
 							start: start,
@@ -251,9 +192,8 @@ export class Tokenizer {
 					} else if (this._isAlpha(char)) {
 						const lexeme = this._extractIdentifier();
 						const keyword = keywords[lexeme.toLowerCase()];
-						tokens.push({
+						this._tokens.push({
 							type: keyword ?? TokenType.IDENTIFIER,
-							// groupType: GroupType.KEYWORD,
 							line: line,
 							start: start,
 							end: this._current,
@@ -264,14 +204,14 @@ export class Tokenizer {
 					throw new UnknownChar(char);
 			}
 		}
-		tokens.push({
+		this._tokens.push({
 			type: TokenType.EOF,
 			start: this._current,
 			end: this._current,
 			line: line,
 			lexeme: "",
 		});
-		return tokens;
+		return this._tokens;
 	}
 
 	private _advance() {
@@ -306,10 +246,45 @@ export class Tokenizer {
 			lexeme += this.program[this._current];
 			this._advance();
 		}
-		// if (this._isAlpha(this._peek())) {
-		// 	this._advance();
-		// 	lexeme + this._extractIdentifier();
-		// }
+
+		const not = getKeyByValue(keywords, TokenType.NOT);
+		const is = getKeyByValue(keywords, TokenType.IS);
+		const between = getKeyByValue(keywords, TokenType.BETWEEN);
+		const like = getKeyByValue(keywords, TokenType.LIKE);
+		const ilike = getKeyByValue(keywords, TokenType.ILIKE);
+
+		if (
+			new RegExp(`^${not}$`, "ig").test(lexeme ?? "") &&
+			new RegExp(`^${is}$`, "ig").test(this._tokens.at(-1)?.lexeme ?? "")
+		) {
+			this._tokens.splice(this._tokens.length - 1, 1);
+			return `${is} ${not}`;
+		}
+
+		if (
+			new RegExp(`^${between}$`, "ig").test(lexeme ?? "") &&
+			new RegExp(`^${not}$`, "ig").test(this._tokens.at(-1)?.lexeme ?? "")
+		) {
+			this._tokens.splice(this._tokens.length - 1, 1);
+			return `${not} ${between}`;
+		}
+
+		if (
+			new RegExp(`^${like}$`, "ig").test(lexeme ?? "") &&
+			new RegExp(`^${not}$`, "ig").test(this._tokens.at(-1)?.lexeme ?? "")
+		) {
+			this._tokens.splice(this._tokens.length - 1, 1);
+			return `${not} ${like}`;
+		}
+
+		if (
+			new RegExp(`^${ilike}$`, "ig").test(lexeme ?? "") &&
+			new RegExp(`^${not}$`, "ig").test(this._tokens.at(-1)?.lexeme ?? "")
+		) {
+			this._tokens.splice(this._tokens.length - 1, 1);
+			return `${not} ${ilike}`;
+		}
+
 		return lexeme;
 	}
 

@@ -1,6 +1,13 @@
+import { BinaryExpression } from "../src/classes/binary.expression";
+import { Identifier } from "../src/classes/identifier";
+import { BooleanLiteral } from "../src/classes/literals/boolean.literal";
+import { Literal } from "../src/classes/literals/literal";
+import { SelectStatement } from "../src/classes/select_statements";
+import { UnaryExpression } from "../src/classes/unary.expression";
 import { Factory } from "../src/factory/factory";
+import { Visitor } from "../src/interpreter/visitor";
 import { Parser } from "../src/parser";
-import { Tokenizer } from "../src/tokenizer";
+import { Tokenizer, TokenType } from "../src/tokenizer";
 
 const factory = new Factory();
 const basic = [
@@ -59,6 +66,7 @@ const limits = [
 		),
 	},
 ];
+
 const where = [
 	{
 		sql: `
@@ -71,7 +79,7 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("month"),
-				factory.createIdentifier("="),
+				factory.createToken(TokenType.EQUAL_EQUAL),
 				factory.createNumericLiteral("1")
 			)
 		),
@@ -87,7 +95,7 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("west"),
-				factory.createIdentifier(">"),
+				factory.createToken(TokenType.GREATER),
 				factory.createNumericLiteral("30")
 			)
 		),
@@ -103,8 +111,8 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("month_name"),
-				factory.createIdentifier("!="),
-				factory.createIdentifier("January")
+				factory.createToken(TokenType.NOT_EQUAL),
+				factory.createStringLiteral("January")
 			)
 		),
 	},
@@ -119,8 +127,8 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("month_name"),
-				factory.createIdentifier("<>"),
-				factory.createIdentifier("January")
+				factory.createToken(TokenType.NOT_EQUAL),
+				factory.createStringLiteral("January")
 			)
 		),
 	},
@@ -137,7 +145,7 @@ const where = [
 				factory.createIdentifier("south"),
 				factory.createBinaryExpression(
 					factory.createIdentifier("west"),
-					factory.createIdentifier("+"),
+					factory.createToken(TokenType.PLUS),
 					factory.createIdentifier("south"),
 					"south_plus_west"
 				),
@@ -159,13 +167,13 @@ const where = [
 				factory.createBinaryExpression(
 					factory.createBinaryExpression(
 						factory.createIdentifier("west"),
-						factory.createIdentifier("+"),
+						factory.createToken(TokenType.PLUS),
 						factory.createIdentifier("south")
 					),
-					factory.createIdentifier("-"),
+					factory.createToken(TokenType.MINUS),
 					factory.createBinaryExpression(
 						factory.createNumericLiteral("4"),
-						factory.createIdentifier("*"),
+						factory.createToken(TokenType.STAR),
 						factory.createIdentifier("year")
 					),
 					"nonsense_column"
@@ -189,11 +197,11 @@ const where = [
 					factory.createGroupingExpression(
 						factory.createBinaryExpression(
 							factory.createIdentifier("west"),
-							factory.createIdentifier("+"),
+							factory.createToken(TokenType.PLUS),
 							factory.createIdentifier("south")
 						)
 					),
-					factory.createIdentifier("/"),
+					factory.createToken(TokenType.SLASH),
 					factory.createNumericLiteral("2"),
 					"south_west_avg"
 				),
@@ -211,9 +219,9 @@ const where = [
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
-				factory.createIdentifier("group"),
-				factory.createIdentifier("LIKE"),
-				factory.createIdentifier("Snoop%")
+				factory.createStringLiteral("group"),
+				factory.createToken(TokenType.LIKE),
+				factory.createStringLiteral("Snoop%")
 			)
 		),
 	},
@@ -227,9 +235,9 @@ const where = [
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
-				factory.createIdentifier("group"),
-				factory.createIdentifier("ILIKE"),
-				factory.createIdentifier("Snoop%")
+				factory.createStringLiteral("group"),
+				factory.createToken(TokenType.ILIKE),
+				factory.createStringLiteral("Snoop%")
 			)
 		),
 	},
@@ -244,8 +252,8 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("artist"),
-				factory.createIdentifier("ILIKE"),
-				factory.createIdentifier("dr_ke")
+				factory.createToken(TokenType.ILIKE),
+				factory.createStringLiteral("dr_ke")
 			)
 		),
 	},
@@ -259,13 +267,13 @@ const where = [
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
+				factory.createIdentifier("year_rank"),
+				factory.createToken(TokenType.BETWEEN),
 				factory.createBinaryExpression(
-					factory.createIdentifier("year_rank"),
-					factory.createIdentifier("BETWEEN"),
-					factory.createNumericLiteral("5")
-				),
-				factory.createIdentifier("AND"),
-				factory.createNumericLiteral("10")
+					factory.createNumericLiteral("5"),
+					factory.createToken(TokenType.AND),
+					factory.createNumericLiteral("10")
+				)
 			)
 		),
 	},
@@ -281,13 +289,13 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year_rank"),
-					factory.createIdentifier(">="),
+					factory.createToken(TokenType.GREATER_EQUAL),
 					factory.createNumericLiteral("5")
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createBinaryExpression(
 					factory.createIdentifier("year_rank"),
-					factory.createIdentifier("<="),
+					factory.createToken(TokenType.LESS_EQUAL),
 					factory.createNumericLiteral("10")
 				)
 			)
@@ -304,8 +312,8 @@ const where = [
 			factory.createIdentifier("tutorial"),
 			factory.createBinaryExpression(
 				factory.createIdentifier("artist"),
-				factory.createIdentifier("IS"),
-				factory.createIdentifier("NULL")
+				factory.createToken(TokenType.IS),
+				factory.createNullLiteral("NULL")
 			)
 		),
 	},
@@ -324,21 +332,21 @@ const where = [
 				factory.createBinaryExpression(
 					factory.createBinaryExpression(
 						factory.createIdentifier("year"),
-						factory.createIdentifier("="),
+						factory.createToken(TokenType.EQUAL_EQUAL),
 						factory.createNumericLiteral("2012")
 					),
-					factory.createIdentifier("AND"),
+					factory.createToken(TokenType.AND),
 					factory.createBinaryExpression(
 						factory.createIdentifier("year_rank"),
-						factory.createIdentifier("<="),
+						factory.createToken(TokenType.LESS_EQUAL),
 						factory.createNumericLiteral("10")
 					)
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createBinaryExpression(
-					factory.createIdentifier("group"),
-					factory.createIdentifier("ILIKE"),
-					factory.createIdentifier("%feat%")
+					factory.createStringLiteral("group"),
+					factory.createToken(TokenType.ILIKE),
+					factory.createStringLiteral("%feat%")
 				)
 			)
 		),
@@ -355,14 +363,14 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year_rank"),
-					factory.createIdentifier("="),
+					factory.createToken(TokenType.EQUAL_EQUAL),
 					factory.createNumericLiteral("5")
 				),
-				factory.createIdentifier("OR"),
+				factory.createToken(TokenType.OR),
 				factory.createBinaryExpression(
 					factory.createIdentifier("artist"),
-					factory.createIdentifier("="),
-					factory.createIdentifier("Gotye")
+					factory.createToken(TokenType.EQUAL_EQUAL),
+					factory.createStringLiteral("Gotye")
 				)
 			)
 		),
@@ -380,22 +388,22 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year"),
-					factory.createIdentifier("="),
+					factory.createToken(TokenType.EQUAL_EQUAL),
 					factory.createNumericLiteral("2013")
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createGroupingExpression(
 					factory.createBinaryExpression(
 						factory.createBinaryExpression(
-							factory.createIdentifier("group"),
-							factory.createIdentifier("ILIKE"),
-							factory.createIdentifier("%macklemore%")
+							factory.createStringLiteral("group"),
+							factory.createToken(TokenType.ILIKE),
+							factory.createStringLiteral("%macklemore%")
 						),
-						factory.createIdentifier("OR"),
+						factory.createToken(TokenType.OR),
 						factory.createBinaryExpression(
-							factory.createIdentifier("group"),
-							factory.createIdentifier("ILIKE"),
-							factory.createIdentifier("%timberlake%")
+							factory.createStringLiteral("group"),
+							factory.createToken(TokenType.ILIKE),
+							factory.createStringLiteral("%timberlake%")
 						)
 					)
 				)
@@ -415,16 +423,16 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year"),
-					factory.createIdentifier("="),
+					factory.createToken(TokenType.EQUAL_EQUAL),
 					factory.createNumericLiteral("2013")
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createBinaryExpression(
 					factory.createIdentifier("year_rank"),
-					factory.createIdentifier("NOT BETWEEN"),
+					factory.createToken(TokenType.NOT_BETWEEN),
 					factory.createBinaryExpression(
 						factory.createNumericLiteral("2"),
-						factory.createIdentifier("AND"),
+						factory.createToken(TokenType.AND),
 						factory.createNumericLiteral("3")
 					)
 				)
@@ -444,14 +452,14 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year"),
-					factory.createIdentifier("="),
+					factory.createToken(TokenType.EQUAL_EQUAL),
 					factory.createNumericLiteral("2013")
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createBinaryExpression(
-					factory.createIdentifier("group"),
-					factory.createIdentifier("NOT ILIKE"),
-					factory.createIdentifier("%macklemore%")
+					factory.createStringLiteral("group"),
+					factory.createToken(TokenType.NOT_ILIKE),
+					factory.createStringLiteral("%macklemore%")
 				)
 			)
 		),
@@ -469,17 +477,14 @@ const where = [
 			factory.createBinaryExpression(
 				factory.createBinaryExpression(
 					factory.createIdentifier("year"),
-					factory.createIdentifier("="),
+					factory.createToken(TokenType.EQUAL_EQUAL),
 					factory.createNumericLiteral("2013")
 				),
-				factory.createIdentifier("AND"),
+				factory.createToken(TokenType.AND),
 				factory.createBinaryExpression(
 					factory.createIdentifier("artist"),
-					factory.createIdentifier("IS"),
-					factory.createUnaryExpression(
-						factory.createIdentifier("NOT"),
-						factory.createIdentifier("NULL")
-					)
+					factory.createToken(TokenType.IS_NOT),
+					factory.createNullLiteral("NULL")
 				)
 			)
 		),
@@ -530,17 +535,88 @@ describe("Where", () => {
 		it(item.sql, () => {
 			const tokenizer = new Tokenizer(item.sql);
 			const parser = new Parser(tokenizer.tokenize());
-			expect(parser.parse()).toEqual([item.ast]);
+			const actualAst = parser.parse();
+			new TestVisitor(actualAst[0]).execute();
+			expect(actualAst).toEqual([item.ast]);
 		});
 	});
 });
 
-describe("Order", () => {
-	order.forEach((item) => {
-		it(item.sql, () => {
-			const tokenizer = new Tokenizer(item.sql);
-			const parser = new Parser(tokenizer.tokenize());
-			expect(parser.parse()).toEqual([item.ast]);
-		});
-	});
-});
+// describe("Order", () => {
+// 	order.forEach((item) => {
+// 		it(item.sql, () => {
+// 			const tokenizer = new Tokenizer(item.sql);
+// 			const parser = new Parser(tokenizer.tokenize());
+// 			expect(parser.parse()).toEqual([item.ast]);
+// 		});
+// 	});
+// });
+
+class TestVisitor extends Visitor<Expression> {
+	public visitNumericLiteralExpr(expr: NumericLiteral): Expression {
+		throw new Error("Method not implemented.");
+	}
+	public visitGroupByExpr(expr: GroupByExpression): Expression {
+		throw new Error("Method not implemented.");
+	}
+	public visitGroupingExpr(expr: GroupingExpression): Expression {
+		expr.expression.accept(this);
+		return expr;
+	}
+	public visitNullLiteralExpr(expr: NullLiteral): Expression {
+		return expr;
+	}
+	public visitStringLiteralExpr(expr: StringLiteral): Expression {
+		return expr;
+	}
+	public visitUnaryExpr(expr: UnaryExpression): Expression {
+		expr.right.accept(this);
+		return expr;
+	}
+	public visitBinaryExpr(expr: BinaryExpression, context: any) {
+		expr.left.accept(this, context);
+		expr.right.accept(this, context);
+		// delete expr.operator.end;
+		// delete expr.operator.start;
+		// delete expr.operator.line;
+		expr.operator = factory.createToken(expr.operator.type);
+		return expr;
+	}
+	public visitLiteralExpr(expr: Literal) {
+		return expr;
+	}
+	public visitBooleanLiteralExpr(expr: BooleanLiteral) {
+		return expr;
+	}
+	public visitIdentifier(expr: Identifier) {
+		return expr;
+	}
+	public visitSelectStmt(stmt: SelectStatement) {
+		stmt.where?.accept?.(this);
+		stmt.having?.accept?.(this);
+		stmt.group?.accept?.(this);
+		stmt.order?.accept?.(this);
+		stmt.limit?.accept?.(this);
+		stmt.from?.accept?.(this);
+		stmt.columns.forEach((column) => column.accept(this));
+		return stmt;
+	}
+
+	public visitNode(node: Expression) {
+		return node;
+	}
+
+	constructor(private _ast: Expression) {
+		super();
+	}
+	public execute() {
+		this._ast.accept(this);
+	}
+}
+
+import { Expression } from "../src/classes/expression";
+import { GroupingExpression } from "../src/classes/grouping.expression";
+import { GroupByExpression } from "../src/classes/group_expression";
+import { NullLiteral } from "../src/classes/literals/null.literal";
+import { NumericLiteral } from "../src/classes/literals/numeric.literal";
+import { StringLiteral } from "../src/classes/literals/string.literal";

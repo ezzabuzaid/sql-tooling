@@ -6,4 +6,5 @@ export abstract class Statement {
 	public abstract varient: Varient;
 
 	public abstract accept<R>(visitor: Visitor<R>): R;
+	public abstract toLiteral(): string;
 }
