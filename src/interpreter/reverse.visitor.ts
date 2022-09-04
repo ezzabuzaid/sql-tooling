@@ -5,7 +5,6 @@ import { GroupingExpression } from "../classes/grouping.expression";
 import { GroupByExpression } from "../classes/group_expression";
 import { Identifier } from "../classes/identifier";
 import { BooleanLiteral } from "../classes/literals/boolean.literal";
-import { Literal } from "../classes/literals/literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
@@ -39,9 +38,7 @@ export class ReverseVisitor extends Visitor<string> {
 		const right = expr.right.accept(this);
 		return `${left} ${expr.operator.lexeme} ${right}`;
 	}
-	public visitLiteralExpr(expr: Literal): string {
-		throw new Error("Method not implemented.");
-	}
+
 	public visitNullLiteralExpr(expr: NullLiteral): string {
 		throw new Error("Method not implemented.");
 	}

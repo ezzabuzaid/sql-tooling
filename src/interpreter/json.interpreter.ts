@@ -5,7 +5,6 @@ import { GroupingExpression } from "../classes/grouping.expression";
 import { GroupByExpression } from "../classes/group_expression";
 import { Identifier } from "../classes/identifier";
 import { BooleanLiteral } from "../classes/literals/boolean.literal";
-import { Literal } from "../classes/literals/literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
@@ -113,10 +112,6 @@ export class JsonInterpreter extends Visitor<any> {
 
 	public visitIdentifier(expr: Identifier): string {
 		return expr.alias || expr.text;
-	}
-
-	public visitLiteralExpr(expr: Literal): string {
-		return expr.value;
 	}
 
 	public execute(expr: Expression) {

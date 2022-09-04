@@ -9,14 +9,12 @@ import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
 import { SelectStatement } from "../classes/select_statements";
-import { Statement } from "../classes/statement";
 import { UnaryExpression } from "../classes/unary.expression";
-import { Factory } from "../factory/factory";
 import { Visitor } from "./visitor";
-const factory = new Factory();
 
-type Node = Expression | Statement | Identifier;
-export class MutateVisitor extends Visitor<Node> {
+type Node = Record<string, any>;
+
+class WalkVisitor extends Visitor<Node> {
 	public visitCallExpr(expr: CallExpression, row: Record<string, any>): Node {
 		throw new Error("Method not implemented.");
 	}
@@ -32,38 +30,93 @@ export class MutateVisitor extends Visitor<Node> {
 	public visitBinaryExpr(expr: BinaryExpression, context: any): Node {
 		throw new Error("Method not implemented.");
 	}
-
 	public visitNullLiteralExpr(expr: NullLiteral): Node {
-		throw new Error("Method not implemented.");
+		return {
+			type: "NullLiteral",
+			value: expr.value,
+		};
 	}
 	public visitBooleanLiteralExpr(expr: BooleanLiteral): Node {
-		throw new Error("Method not implemented.");
+		return {
+			type: "BooleanLiteral",
+			value: expr.value,
+		};
 	}
 	public visitStringLiteralExpr(expr: StringLiteral): Node {
-		throw new Error("Method not implemented.");
+		return {
+			type: "StringLiteral",
+			value: expr.value,
+		};
 	}
 	public visitIdentifier(expr: Identifier): Node {
-		throw new Error("Method not implemented.");
+		return {
+			type: "Identifier",
+			name: expr.text,
+			alias: expr.alias,
+		};
 	}
 	public visitSelectStmt(stmt: SelectStatement): Node {
-		return factory.createSelectStatement(
-			(() => {
-				const [f] = stmt.columns;
-				if (f instanceof Identifier) {
-					f.text;
-				}
-				return [];
-			})(),
-			stmt.from,
-			stmt.where,
-			stmt.order,
-			stmt.limit
-		);
+		return {
+			type: "Statement",
+			expressions: [
+				stmt.columns.map((column) => column.accept(this)),
+				stmt.from?.accept(this),
+			],
+		};
 	}
 	public visitGroupByExpr(expr: GroupByExpression): Node {
 		throw new Error("Method not implemented.");
 	}
+
 	public execute(expr: Expression): Node {
-		return expr.accept(this);
+		return {
+			type: "Program",
+			body: expr.accept(this),
+		};
+	}
+}
+
+interface VisitorEnterGate {
+	enter: (arg: any) => void;
+	exit?: (arg: any) => void;
+}
+interface VisitorExitGate {
+	enter?: (arg: any) => void;
+	exit: (arg: any) => void;
+}
+
+export function walk(
+	ast: Expression,
+	simpleVisitor: Record<string, VisitorEnterGate | VisitorExitGate>
+) {
+	const visitor = new WalkVisitor();
+	const result = visitor.execute(ast);
+	traverseNode(result);
+	function traverseArray(array: Node[]) {
+		array.forEach((child) => {
+			traverseNode(child);
+		});
+	}
+
+	function traverseNode(node: Node) {
+		const method = simpleVisitor[node.type];
+		if (method) {
+			method.enter?.(node);
+		}
+
+		switch (node.type) {
+			case "Program":
+				traverseNode(node.body);
+				break;
+			case "Statement":
+				traverseArray(node.expressions);
+				break;
+
+			default:
+				break;
+		}
+		if (method) {
+			method.exit?.(node);
+		}
 	}
 }

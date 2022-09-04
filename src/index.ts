@@ -1,8 +1,7 @@
 global.XMLHttpRequest = require("xhr2");
 
 import { Factory } from "./factory/factory";
-import { MutateVisitor } from "./interpreter/mutate.visitor";
-import { ReverseVisitor } from "./interpreter/reverse.visitor";
+import { walk } from "./interpreter/walker";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
@@ -15,7 +14,33 @@ const parser = new Parser(tokens);
 const ast = parser.parse();
 
 const factory = new Factory();
-console.log(JSON.stringify(ast, null, 4));
+
+walk(
+	factory.createSelectStatement(
+		[factory.createColumnIdentifier("price")],
+		factory.createIdentifier("Product")
+	),
+	{
+		Identifier: {
+			enter: (node) => {
+				console.log("enter", node);
+			},
+			exit: (node) => {
+				console.log("exit", node);
+			},
+		},
+		Statement: {
+			enter: (node) => {
+				console.log("enter", node);
+			},
+			exit: (node) => {
+				console.log("exit", node);
+			},
+		},
+	}
+);
+
+// console.log(JSON.stringify(ast, null, 4));
 
 // const jsonInterpreter = new JsonInterpreter({
 // 	products: [
@@ -34,10 +59,10 @@ console.log(JSON.stringify(ast, null, 4));
 // 	})()
 // );
 // console.log(result);
-const mutateVisitor = new MutateVisitor();
-console.log(mutateVisitor.execute(ast[0]));
-const reverseVisitor = new ReverseVisitor();
-console.log(reverseVisitor.execute(mutateVisitor.execute(ast[0])));
+// const mutateVisitor = new MutateVisitor();
+// console.log(mutateVisitor.execute(ast[0]));
+// const reverseVisitor = new ReverseVisitor();
+// console.log(reverseVisitor.execute(mutateVisitor.execute(ast[0])));
 
 // const rxJsInterpreter = new RxJsInterpreter();
 // rxJsInterpreter
@@ -67,3 +92,10 @@ console.log(reverseVisitor.execute(mutateVisitor.execute(ast[0])));
 // call         → primary ( "(" (arguments?) ")" )*;
 // primary      → IDENTIFIER | NUMBER | STRING | NULL | "true" | "false" | "(" expression ")";
 // arguments    → expression | ("," expression)*
+export * from "./interpreter/json.interpreter";
+export * from "./interpreter/mutate.visitor";
+export * from "./interpreter/reverse.visitor";
+export * from "./interpreter/rxjs/rxjs.interpreter";
+export * from "./interpreter/visitor";
+export * from "./parser";
+export * from "./tokenizer";

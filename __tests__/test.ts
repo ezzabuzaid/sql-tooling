@@ -1,7 +1,6 @@
 import { BinaryExpression } from "../src/classes/binary.expression";
 import { Identifier } from "../src/classes/identifier";
 import { BooleanLiteral } from "../src/classes/literals/boolean.literal";
-import { Literal } from "../src/classes/literals/literal";
 import { SelectStatement } from "../src/classes/select_statements";
 import { UnaryExpression } from "../src/classes/unary.expression";
 import { Factory } from "../src/factory/factory";
@@ -553,6 +552,12 @@ describe("Where", () => {
 // });
 
 class TestVisitor extends Visitor<Expression> {
+	public visitCallExpr(
+		expr: CallExpression,
+		row: Record<string, any>
+	): Expression {
+		throw new Error("Method not implemented.");
+	}
 	public visitNumericLiteralExpr(expr: NumericLiteral): Expression {
 		throw new Error("Method not implemented.");
 	}
@@ -582,9 +587,7 @@ class TestVisitor extends Visitor<Expression> {
 		expr.operator = factory.createToken(expr.operator.type);
 		return expr;
 	}
-	public visitLiteralExpr(expr: Literal) {
-		return expr;
-	}
+
 	public visitBooleanLiteralExpr(expr: BooleanLiteral) {
 		return expr;
 	}
@@ -614,6 +617,7 @@ class TestVisitor extends Visitor<Expression> {
 	}
 }
 
+import { CallExpression } from "../src/classes/call.expression";
 import { Expression } from "../src/classes/expression";
 import { GroupingExpression } from "../src/classes/grouping.expression";
 import { GroupByExpression } from "../src/classes/group_expression";

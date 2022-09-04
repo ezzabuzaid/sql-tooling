@@ -1,4 +1,3 @@
-import { EventEmitter } from "events";
 import {
 	EMPTY,
 	forkJoin,
@@ -14,23 +13,22 @@ import {
 	toArray,
 	withLatestFrom,
 } from "rxjs";
-import { ajax } from "rxjs/ajax";
-import { Expression } from "../classes/expression";
-import { Identifier } from "../classes/identifier";
-import { SelectStatement } from "../classes/select_statements";
-import { Visitor } from "./visitor";
+import { Expression } from "../../classes/expression";
+import { Identifier } from "../../classes/identifier";
+import { SelectStatement } from "../../classes/select_statements";
+import { Visitor } from "../visitor";
 
-import { BinaryExpression } from "../classes/binary.expression";
-import { CallExpression } from "../classes/call.expression";
-import { GroupingExpression } from "../classes/grouping.expression";
-import { GroupByExpression } from "../classes/group_expression";
-import { BooleanLiteral } from "../classes/literals/boolean.literal";
-import { Literal } from "../classes/literals/literal";
-import { NullLiteral } from "../classes/literals/null.literal";
-import { NumericLiteral } from "../classes/literals/numeric.literal";
-import { StringLiteral } from "../classes/literals/string.literal";
-import { UnaryExpression } from "../classes/unary.expression";
-import { TokenType } from "../tokenizer";
+import { BinaryExpression } from "../../classes/binary.expression";
+import { CallExpression } from "../../classes/call.expression";
+import { GroupingExpression } from "../../classes/grouping.expression";
+import { GroupByExpression } from "../../classes/group_expression";
+import { BooleanLiteral } from "../../classes/literals/boolean.literal";
+import { NullLiteral } from "../../classes/literals/null.literal";
+import { NumericLiteral } from "../../classes/literals/numeric.literal";
+import { StringLiteral } from "../../classes/literals/string.literal";
+import { UnaryExpression } from "../../classes/unary.expression";
+import { TokenType } from "../../tokenizer";
+import default_callHandler from "../default_call.handler";
 
 export class RxJsInterpreter extends Visitor<Observable<any>> {
 	public visitCallExpr(
@@ -40,32 +38,23 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 		return expr.callee.accept(this).pipe(
 			map((functionName) => functionName.toLowerCase()),
 			switchMap((functionName) => {
-				const at = (pos: number) => expr.args[pos].accept(this);
-				switch (functionName) {
-					case "http":
-						return at(0).pipe(
-							mergeMap((url) =>
-								ajax<any[]>({
-									method: "GET",
-									url: url,
-									responseType: "json",
-								})
-							),
-							map((response) => response.response)
-						);
-					default:
-						throw new Error("Unsupported function " + functionName);
+				const handler = default_callHandler[functionName];
+				if (!handler) {
+					throw new Error("Unsupported function " + functionName);
+				} else {
+					return handler(expr, this);
 				}
 			})
 		);
 	}
+
 	public visitGroupByExpr(stmt: GroupByExpression): Observable<any> {
 		throw new Error("Method not implemented.");
 	}
+
 	public visitNumericLiteralExpr(expr: NumericLiteral): Observable<any> {
 		throw new Error("Method not implemented.");
 	}
-	#eventEmitter = new EventEmitter();
 
 	public visitGroupingExpr(expr: GroupingExpression): Observable<any> {
 		throw new Error("Method not implemented.");
@@ -93,9 +82,6 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 		);
 	}
 
-	public visitLiteralExpr(expr: Literal): Observable<any> {
-		throw new Error("Method not implemented.");
-	}
 	public visitNullLiteralExpr(expr: NullLiteral): Observable<any> {
 		throw new Error("Method not implemented.");
 	}
@@ -159,9 +145,5 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 
 	public execute(expr: Expression) {
 		return expr.accept(this);
-	}
-
-	public on(eventName: string, callback: () => void) {
-		this.#eventEmitter.on(eventName, callback);
 	}
 }

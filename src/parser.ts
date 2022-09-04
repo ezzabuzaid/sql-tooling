@@ -21,6 +21,7 @@ export class Parser {
 	private _current = 0;
 	private _factory = new Factory();
 	constructor(private _tokens: IToken<TokenType>[]) {}
+
 	parse() {
 		const tree: Statement[] = [];
 		while (!this._isAtEnd()) {
