@@ -1,4 +1,5 @@
 export type Varient =
+	| "join"
 	| "string"
 	| "double"
 	| "int"

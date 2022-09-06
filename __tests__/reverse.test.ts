@@ -1,16 +1,14 @@
-import { ReverseVisitor } from "../src/interpreter/reverse.visitor";
-import { Parser } from "../src/parser";
-import { Tokenizer } from "../src/tokenizer";
+import { Parser, ReverseVisitor, Tokenizer } from "../src";
 
 const statmeents = [
-	`select category from products`,
+	`select category from products;`,
 	`select distinct category, name from products group by category;`,
-	`SELECT * FROM Member WHERE MemberType = 'Senior'`,
-	"SELECT LastName, FirstName, Phone FROM Member",
-	`SELECT LastName, FirstName, Phone FROM Member WHERE MemberType = 'Senior'`,
-	`SELECT Member.LastName, Member.FirstName, Member.Phone FROM Member WHERE Member.MemberType = 'Senior'`,
-	`SELECT * FROM Member as m WHERE m.MemberType = 'Junior' AND m.Gender = 'F'`,
-	`SELECT UPPER(MemberType) FROM Member`,
+	`SELECT * FROM Member WHERE MemberType = 'Senior';`,
+	"SELECT LastName, FirstName, Phone FROM Member;",
+	`SELECT LastName, FirstName, Phone FROM Member WHERE MemberType = 'Senior';`,
+	`SELECT Member.LastName, Member.FirstName, Member.Phone FROM Member WHERE Member.MemberType = 'Senior';`,
+	`SELECT * FROM Member as m WHERE m.MemberType = 'Junior' AND m.Gender = 'F';`,
+	`SELECT UPPER(MemberType) FROM Member;`,
 ];
 
 describe("Reverse AST", () => {

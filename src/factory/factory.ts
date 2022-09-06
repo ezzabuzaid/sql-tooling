@@ -4,6 +4,7 @@ import {
 	OrderByColumn,
 	OrderByDirection,
 } from "../classes/column.identifier";
+import { CrossJoin } from "../classes/CrossJoin";
 import { Expression } from "../classes/expression";
 import { GroupingExpression } from "../classes/grouping.expression";
 import { Identifier } from "../classes/identifier";
@@ -72,6 +73,8 @@ export const keywords: Record<string, TokenType> = {
 	true: TokenType.FALSE,
 	false: TokenType.TRUE,
 	exists: TokenType.EXISTS,
+	join: TokenType.JOIN,
+	cross: TokenType.CROSS,
 };
 
 export class Factory {
@@ -110,6 +113,10 @@ export class Factory {
 
 	public createIdentifier(name: string, alias?: string): Identifier {
 		return new Identifier(name, alias);
+	}
+
+	public createCrossJoin(expression: Expression): CrossJoin {
+		return new CrossJoin(expression);
 	}
 
 	public createColumnIdentifier(name: string, alias?: string): Identifier {

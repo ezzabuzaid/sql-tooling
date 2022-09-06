@@ -11,7 +11,7 @@ import { Tokenizer, TokenType } from "../src/tokenizer";
 const factory = new Factory();
 const basic = [
 	{
-		sql: "select * from product",
+		sql: "select * from product;",
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("product")
@@ -20,8 +20,7 @@ const basic = [
 	{
 		sql: `
 			SELECT year, month, west
-			FROM tutorial.us_housing_units
-			  `,
+			FROM tutorial.us_housing_units;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("year"),
@@ -34,8 +33,7 @@ const basic = [
 	{
 		sql: `
 			SELECT west AS West_Region, south AS South_Region
-  			FROM tutorial
-			`,
+  			FROM tutorial;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("west", "West_Region"),
@@ -51,8 +49,7 @@ const limits = [
 		sql: `
 			SELECT west AS West_Region, south AS South_Region
 			FROM tutorial.us_housing_units
-			LIMIT 10
-		  `,
+			LIMIT 10;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("west", "West_Region"),
@@ -72,7 +69,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE month = 1
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -88,7 +85,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE west > 30
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -104,7 +101,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE month_name != 'January'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -120,7 +117,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE month_name <> 'January'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -135,7 +132,7 @@ const where = [
 		sql: `
 			SELECT year, month, west, south, west + south AS south_plus_west
 			FROM tutorial
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("year"),
@@ -156,7 +153,7 @@ const where = [
 		sql: `
 			SELECT year, month, west, south, west + south - 4 * year AS nonsense_column
 			FROM tutorial
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("year"),
@@ -185,7 +182,7 @@ const where = [
 		sql: `
 			SELECT year, month, west, south, (west + south) / 2 AS south_west_avg
 			FROM tutorial
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[
 				factory.createIdentifier("year"),
@@ -213,7 +210,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE "group" LIKE 'Snoop%'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -229,7 +226,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE "group" ILIKE 'Snoop%'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -245,7 +242,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE artist ILIKE 'dr_ke'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -261,7 +258,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE year_rank BETWEEN 5 AND 10
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -281,7 +278,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE year_rank >= 5 AND year_rank <= 10
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -305,7 +302,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE artist IS NULL
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -323,7 +320,7 @@ const where = [
 			WHERE year = 2012
 			AND year_rank <= 10
 			AND "group" ILIKE '%feat%'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -355,7 +352,7 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE year_rank = 5 OR artist = 'Gotye'
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -380,7 +377,7 @@ const where = [
 			FROM tutorial
 			WHERE year = 2013
 			AND ("group" ILIKE '%macklemore%' OR "group" ILIKE '%timberlake%')
-		  `,
+		  ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -415,7 +412,7 @@ const where = [
 			FROM tutorial
 			WHERE year = 2013
 			AND year_rank NOT BETWEEN 2 AND 3
-   `,
+   ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -444,7 +441,7 @@ const where = [
 		FROM tutorial
 		WHERE year = 2013
 		AND "group" NOT ILIKE '%macklemore%'
-   `,
+   ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -468,8 +465,8 @@ const where = [
 			SELECT *
 			FROM tutorial
 			WHERE year = 2013
-			AND artist IS NOT NULL
-   `,
+			AND artist IS NOT NULL;
+   ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
@@ -495,11 +492,32 @@ const order = [
 		sql: `
 			SELECT *
 			FROM tutorial
-			ORDER BY year DESC, year_rank
- `,
+			ORDER BY year DESC, year_rank;
+ ;`,
 		ast: factory.createSelectStatement(
 			[factory.createIdentifier("*")],
 			factory.createIdentifier("tutorial"),
+			undefined,
+			factory.createOrderExpression([
+				factory.createOrderColumn(factory.createIdentifier("year"), "DESC"),
+				factory.createOrderColumn(factory.createIdentifier("year_rank"), "ASC"),
+			])
+		),
+	},
+];
+
+const joins = [
+	{
+		sql: `
+			SELECT *
+			FROM tutorial, basics
+ ;`,
+		ast: factory.createSelectStatement(
+			[factory.createIdentifier("*")],
+			factory.createIdentifier(
+				"tutorial",
+				factory.createCrossJoin(factory.createIdentifier("basics"))
+			),
 			undefined,
 			factory.createOrderExpression([
 				factory.createOrderColumn(factory.createIdentifier("year"), "DESC"),
@@ -541,6 +559,18 @@ describe("Where", () => {
 	});
 });
 
+describe("Join", () => {
+	where.forEach((item) => {
+		it(item.sql, () => {
+			const tokenizer = new Tokenizer(item.sql);
+			const parser = new Parser(tokenizer.tokenize());
+			const actualAst = parser.parse();
+			new TestVisitor(actualAst[0]).execute();
+			expect(actualAst).toEqual([item.ast]);
+		});
+	});
+});
+
 // describe("Order", () => {
 // 	order.forEach((item) => {
 // 		it(item.sql, () => {
@@ -556,13 +586,13 @@ class TestVisitor extends Visitor<Expression> {
 		expr: CallExpression,
 		row: Record<string, any>
 	): Expression {
-		throw new Error("Method not implemented.");
+		return expr;
 	}
 	public visitNumericLiteralExpr(expr: NumericLiteral): Expression {
-		throw new Error("Method not implemented.");
+		return expr;
 	}
 	public visitGroupByExpr(expr: GroupByExpression): Expression {
-		throw new Error("Method not implemented.");
+		return expr;
 	}
 	public visitGroupingExpr(expr: GroupingExpression): Expression {
 		expr.expression.accept(this);

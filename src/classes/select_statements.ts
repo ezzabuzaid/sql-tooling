@@ -7,6 +7,7 @@ import { Varient } from "./varient";
 
 export class SelectStatement extends Statement {
 	public override varient: Varient = "select";
+	public joins: Expression[] = [];
 	public columns: (Identifier | Expression)[] = [];
 	public from?: Expression;
 	public where?: Expression;

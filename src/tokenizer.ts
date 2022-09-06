@@ -60,6 +60,8 @@ export enum TokenType {
 	NULL = 922,
 	ALL = 923,
 	EXISTS = 924,
+	JOIN = 925,
+	CROSS = 926,
 
 	// Clauses
 	ORDER = 1201,

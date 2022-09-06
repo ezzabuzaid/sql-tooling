@@ -1,44 +1,47 @@
 global.XMLHttpRequest = require("xhr2");
 
 import { Factory } from "./factory/factory";
-import { walk } from "./interpreter/walker";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
-		select test, first from dataset;
+SELECT A.CustomerName AS CustomerName1, B.CustomerName AS CustomerName2, A.City
+FROM Customers as A, Customers as B
+WHERE A.CustomerID <> B.CustomerID
+AND A.City = B.City
+ORDER BY A.City;
 `;
 
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-
+console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
 
-walk(
-	factory.createSelectStatement(
-		[factory.createColumnIdentifier("price")],
-		factory.createIdentifier("Product")
-	),
-	{
-		Identifier: {
-			enter: (node) => {
-				console.log("enter", node);
-			},
-			exit: (node) => {
-				console.log("exit", node);
-			},
-		},
-		Statement: {
-			enter: (node) => {
-				console.log("enter", node);
-			},
-			exit: (node) => {
-				console.log("exit", node);
-			},
-		},
-	}
-);
+// walk(
+// 	factory.createSelectStatement(
+// 		[factory.createColumnIdentifier("price")],
+// 		factory.createIdentifier("Product")
+// 	),
+// 	{
+// 		Identifier: {
+// 			enter: (node) => {
+// 				console.log("enter", node);
+// 			},
+// 			exit: (node) => {
+// 				console.log("exit", node);
+// 			},
+// 		},
+// 		Statement: {
+// 			enter: (node) => {
+// 				console.log("enter", node);
+// 			},
+// 			exit: (node) => {
+// 				console.log("exit", node);
+// 			},
+// 		},
+// 	}
+// );
 
 // console.log(JSON.stringify(ast, null, 4));
 

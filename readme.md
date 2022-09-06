@@ -27,3 +27,4 @@ This query is synaticaly valid, however, this can pull huge amount of rows, ther
 
 1. HTTP
 2. CACHE
+3. Pagination (Maybe)

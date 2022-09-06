@@ -19,10 +19,9 @@ export class ReverseVisitor extends Visitor<string> {
 		return `${functionName}(${args})`;
 	}
 	public visitGroupByExpr(expr: GroupByExpression): string {
-		const columns = expr.columns
-			.map((column) => column.accept(this))
-			.join(", ");
-		return `group by ${columns}`;
+		const columns =
+			" " + expr.columns.map((column) => column.accept(this)).join(", ");
+		return `group by${columns}`;
 	}
 	public visitGroupingExpr(expr: GroupingExpression): string {
 		throw new Error("Method not implemented.");
@@ -46,19 +45,21 @@ export class ReverseVisitor extends Visitor<string> {
 		throw new Error("Method not implemented.");
 	}
 	public visitStringLiteralExpr(expr: StringLiteral): string {
-		return `"${expr.value}"`;
+		return `'${expr.value}'`;
 	}
 	public visitIdentifier(expr: Identifier): string {
 		const alias = expr.alias ? ` as ${expr.alias}` : "";
 		return `${expr.text}${alias}`;
 	}
 	public visitSelectStmt(stmt: SelectStatement): string {
-		const columns = this._parseColumns(stmt.columns);
+		const columns = " " + this._parseColumns(stmt.columns);
 		const from = this._formatFrom(stmt.from);
-		const distinct = stmt.distinct ? " distinct " : "";
+		const distinct = stmt.distinct ? " distinct" : "";
 		const groupBy = stmt.group?.accept(this) ?? "";
 		const where = stmt.where ? `where ${stmt.where?.accept(this)}` : "";
-		return `select ${distinct}${columns} ${from} ${where} ${groupBy}`;
+		return (
+			`select${distinct}${columns} ${from} ${where}${groupBy}`.trim() + ";"
+		);
 	}
 
 	public execute(expr: Expression) {

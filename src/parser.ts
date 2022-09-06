@@ -1,6 +1,7 @@
 import { BinaryExpression, BinaryToken } from "./classes/binary.expression";
 import { CallExpression } from "./classes/call.expression";
 import { OrderByColumn, OrderByDirection } from "./classes/column.identifier";
+import { CrossJoin } from "./classes/CrossJoin";
 import { Expression } from "./classes/expression";
 import { GroupingExpression } from "./classes/grouping.expression";
 import { GroupByExpression } from "./classes/group_expression";
@@ -11,7 +12,6 @@ import { NullLiteral } from "./classes/literals/null.literal";
 import { NumericLiteral } from "./classes/literals/numeric.literal";
 import { StringLiteral } from "./classes/literals/string.literal";
 import { OrderExpression } from "./classes/order_expression";
-import { SelectStatement } from "./classes/select_statements";
 import { Statement } from "./classes/statement";
 import { UnknownToken } from "./errors/unknown_token.error";
 import { Factory } from "./factory/factory";
@@ -50,7 +50,7 @@ export class Parser {
 
 	private _selectStatement() {
 		this._advance();
-		const statement = new SelectStatement();
+		const statement = this._factory.createSelectStatement([]);
 		if (this._match(TokenType.DISTINCT)) {
 			statement.distinct = true;
 		} else if (this._match(TokenType.ALL)) {
@@ -69,10 +69,14 @@ export class Parser {
 
 		if (this._match(TokenType.FROM)) {
 			statement.from = this._expression();
-			// TODO: handle mulitple from table names (CROSS JOIN)
-			// do {
-			// 	statement.columns.push(this._expression());
-			// } while (this._match(TokenType.COMMA));
+			while (this._match(TokenType.COMMA)) {
+				statement.joins.push(new CrossJoin(this._expression()));
+			}
+
+			if (this._match(TokenType.CROSS)) {
+				this._consume(TokenType.JOIN, "Missing 'JOIN' keyword.");
+				statement.joins.push(new CrossJoin(this._expression()));
+			}
 		}
 
 		if (this._match(TokenType.WHERE)) {
