@@ -1,22 +1,22 @@
 global.XMLHttpRequest = require("xhr2");
 
+import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
+import { GraphQlVisitor } from "./interpreter/graphql";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
-SELECT A.CustomerName AS CustomerName1, B.CustomerName AS CustomerName2, A.City
-FROM Customers as A, Customers as B
-WHERE A.CustomerID <> B.CustomerID
-AND A.City = B.City
-ORDER BY A.City;
+SELECT id, title from posts;
 `;
 
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-console.log(JSON.stringify(ast, null, 2));
+// console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
+
+writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
 
 // walk(
 // 	factory.createSelectStatement(
