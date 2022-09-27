@@ -4,6 +4,7 @@ import { Expression } from "../classes/expression";
 import { GroupingExpression } from "../classes/grouping.expression";
 import { GroupByExpression } from "../classes/group_expression";
 import { Identifier } from "../classes/identifier";
+import { LimitExpression } from "../classes/limit.expression";
 import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
@@ -14,6 +15,9 @@ import { TokenType } from "../tokenizer";
 import { Visitor } from "./visitor";
 
 export class JsonInterpreter extends Visitor<any> {
+	public visitLimitExpr(expr: LimitExpression, context?: any) {
+		throw new Error("Method not implemented.");
+	}
 	constructor(public dataset: Record<string, any[]>) {
 		super();
 	}

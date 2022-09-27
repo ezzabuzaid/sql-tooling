@@ -3,6 +3,7 @@ import { CallExpression } from "../classes/call.expression";
 import { GroupingExpression } from "../classes/grouping.expression";
 import { GroupByExpression } from "../classes/group_expression";
 import { Identifier } from "../classes/identifier";
+import { LimitExpression } from "../classes/limit.expression";
 import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
@@ -24,5 +25,6 @@ export abstract class Visitor<R> {
 	public abstract visitStringLiteralExpr(expr: StringLiteral): R;
 	public abstract visitIdentifier(expr: Identifier): R;
 	public abstract visitSelectStmt(stmt: SelectStatement): R;
-	public abstract visitGroupByExpr(expr: GroupByExpression): R;
+	public abstract visitGroupByExpr(expr: GroupByExpression, context?: any): R;
+	public abstract visitLimitExpr(expr: LimitExpression, context?: any): R;
 }

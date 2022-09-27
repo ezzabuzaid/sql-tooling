@@ -1,6 +1,6 @@
 import connect, { sql } from "@databases/sqlite";
 import express from "express";
-import { Parser, Tokenizer } from "../src";
+import { Parser, Tokenizer } from "../../src";
 const app = express();
 app.get("/", (req) => {
 	console.log("sql", req.query.sql);

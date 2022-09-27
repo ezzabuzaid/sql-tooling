@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<script
+			type="text/javascript"
+			src="https://www.gstatic.com/charts/loader.js"
+		></script>
+		<script src="./apple-6m.js"></script>
+		<script type="text/javascript">
+			google.charts.load("current", { packages: ["corechart"] });
+			google.charts.setOnLoadCallback(drawChart);
+
+			function drawChart() {
+				var data = google.visualization.arrayToDataTable(
+					ohlcData
+						.slice(0, 100)
+						.map((item) => [
+							item.Date,
+							+item.Low,
+							+item.Open,
+							+item["Close/Last"],
+							+item.High,
+						]),
+					// Treat first row as data as well.
+					true
+				);
+
+				var options = {
+					legend: "none",
+					explorer: {
+						actions: ["dragToZoom", "rightClickToReset"],
+						/* you can add more options */
+					},
+					animation: { easing: "inAndOut" },
+				};
+
+				var chart = new google.visualization.CandlestickChart(
+					document.getElementById("chart_div")
+				);
+
+				chart.draw(data, options);
+			}
+		</script>
+	</head>
+	<body>
+		<div id="chart_div" style="width: 100vw; height: 100vh"></div>
+	</body>
+</html>
+
+<!-- https://www.nasdaq.com/market-activity/quotes/historical -->
+<!-- https://csvjson.com/csv2json -->

@@ -506,26 +506,26 @@ const order = [
 	},
 ];
 
-const joins = [
-	{
-		sql: `
-			SELECT *
-			FROM tutorial, basics
- ;`,
-		ast: factory.createSelectStatement(
-			[factory.createIdentifier("*")],
-			factory.createIdentifier(
-				"tutorial",
-				factory.createCrossJoin(factory.createIdentifier("basics"))
-			),
-			undefined,
-			factory.createOrderExpression([
-				factory.createOrderColumn(factory.createIdentifier("year"), "DESC"),
-				factory.createOrderColumn(factory.createIdentifier("year_rank"), "ASC"),
-			])
-		),
-	},
-];
+// const joins = [
+// 	{
+// 		sql: `
+// 			SELECT *
+// 			FROM tutorial, basics
+//  ;`,
+// 		ast: factory.createSelectStatement(
+// 			[factory.createIdentifier("*")],
+// 			factory.createIdentifier(
+// 				"tutorial",
+// 				factory.createCrossJoin(factory.createIdentifier("basics"))
+// 			),
+// 			undefined,
+// 			factory.createOrderExpression([
+// 				factory.createOrderColumn(factory.createIdentifier("year"), "DESC"),
+// 				factory.createOrderColumn(factory.createIdentifier("year_rank"), "ASC"),
+// 			])
+// 		),
+// 	},
+// ];
 
 describe("Basic", () => {
 	basic.forEach((item) => {

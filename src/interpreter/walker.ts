@@ -4,6 +4,7 @@ import { Expression } from "../classes/expression";
 import { GroupingExpression } from "../classes/grouping.expression";
 import { GroupByExpression } from "../classes/group_expression";
 import { Identifier } from "../classes/identifier";
+import { LimitExpression } from "../classes/limit.expression";
 import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
@@ -15,6 +16,9 @@ import { Visitor } from "./visitor";
 type Node = Record<string, any>;
 
 class WalkVisitor extends Visitor<Node> {
+	public visitLimitExpr(expr: LimitExpression, context?: any): Node {
+		throw new Error("Method not implemented.");
+	}
 	public visitCallExpr(expr: CallExpression, row: Record<string, any>): Node {
 		throw new Error("Method not implemented.");
 	}

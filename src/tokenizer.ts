@@ -318,3 +318,12 @@ export class Tokenizer {
 		return c >= "0" && c <= "9";
 	}
 }
+export const AGGREGATE_FUNCTIONS = [
+	"count",
+	"group_concat",
+	"avg",
+	"sum",
+	"total",
+	"max",
+	"min",
+];

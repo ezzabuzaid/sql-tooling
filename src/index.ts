@@ -1,8 +1,6 @@
 global.XMLHttpRequest = require("xhr2");
 
-import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
-import { GraphQlVisitor } from "./interpreter/graphql";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
@@ -16,7 +14,7 @@ const ast = parser.parse();
 // console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
 
-writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
+// writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
 
 // walk(
 // 	factory.createSelectStatement(

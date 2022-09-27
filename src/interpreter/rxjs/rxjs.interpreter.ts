@@ -1,4 +1,5 @@
 import {
+	combineLatest,
 	EMPTY,
 	forkJoin,
 	from,
@@ -9,9 +10,8 @@ import {
 	Observable,
 	of,
 	switchMap,
-	throwError,
+	tap,
 	toArray,
-	withLatestFrom,
 } from "rxjs";
 import { Expression } from "../../classes/expression";
 import { Identifier } from "../../classes/identifier";
@@ -22,15 +22,59 @@ import { BinaryExpression } from "../../classes/binary.expression";
 import { CallExpression } from "../../classes/call.expression";
 import { GroupingExpression } from "../../classes/grouping.expression";
 import { GroupByExpression } from "../../classes/group_expression";
+import { LimitExpression } from "../../classes/limit.expression";
 import { BooleanLiteral } from "../../classes/literals/boolean.literal";
 import { NullLiteral } from "../../classes/literals/null.literal";
 import { NumericLiteral } from "../../classes/literals/numeric.literal";
 import { StringLiteral } from "../../classes/literals/string.literal";
 import { UnaryExpression } from "../../classes/unary.expression";
-import { TokenType } from "../../tokenizer";
-import default_callHandler from "../default_call.handler";
+import { AGGREGATE_FUNCTIONS, TokenType } from "../../tokenizer";
+import default_callHandler from "./default_call.handler";
 
 export class RxJsInterpreter extends Visitor<Observable<any>> {
+	public aggregateFns: Record<string, CallExpression> = {};
+	public handlers: ((
+		table: Record<string, any>[],
+		columns: Expression[]
+	) => Record<string, any>[])[] = [
+		(table, columns) => {
+			const result: Record<string, any>[] = [];
+			for (const row of table) {
+				if (columns.map((item) => item.toLiteral()).at(0) === "*") {
+					result.push(row);
+				} else {
+					const acc: Record<string, any> = {};
+					for (const column of columns) {
+						if (column instanceof Expression) {
+							column.accept(this, row).subscribe((value) => {
+								acc[column.toLiteral()] = value;
+							});
+						}
+
+						if (column instanceof Identifier) {
+							column.accept(this).subscribe((columnName) => {
+								acc[column.toLiteral()] = row[columnName];
+							});
+						}
+					}
+					result.push(acc);
+				}
+			}
+			return result;
+		},
+	];
+
+	constructor() {
+		super();
+		if (typeof window === "undefined") {
+			global.XMLHttpRequest = require("xhr2");
+		}
+	}
+
+	// public visitAggregateCallExpr(expr: CallExpression): Observable<any> {
+	// 	throw new Error("Method not implemented.");
+	// }
+
 	public visitCallExpr(
 		expr: CallExpression,
 		row: Record<string, any>
@@ -38,30 +82,27 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 		return expr.callee.accept(this).pipe(
 			map((functionName) => functionName.toLowerCase()),
 			switchMap((functionName) => {
+				if (AGGREGATE_FUNCTIONS.includes(functionName)) {
+					this.aggregateFns[expr.toLiteral()] = expr;
+				}
 				const handler = default_callHandler[functionName];
 				if (!handler) {
 					throw new Error("Unsupported function " + functionName);
 				} else {
-					return handler(expr, this);
+					return handler(expr, this, row);
 				}
 			})
 		);
 	}
 
-	public visitGroupByExpr(stmt: GroupByExpression): Observable<any> {
-		throw new Error("Method not implemented.");
-	}
-
 	public visitNumericLiteralExpr(expr: NumericLiteral): Observable<any> {
-		throw new Error("Method not implemented.");
+		return of(+expr.value);
 	}
 
-	public visitGroupingExpr(expr: GroupingExpression): Observable<any> {
-		throw new Error("Method not implemented.");
-	}
 	public visitUnaryExpr(expr: UnaryExpression): Observable<any> {
 		throw new Error("Method not implemented.");
 	}
+
 	public visitBinaryExpr(
 		expr: BinaryExpression,
 		row: Record<string, any>
@@ -97,50 +138,143 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 	}
 
 	public visitSelectStmt(stmt: SelectStatement): Observable<any> {
-		const columns$: Observable<string[]> = from(stmt.columns).pipe(
-			mergeMap((item) => {
-				if (item instanceof Expression || item instanceof Identifier) {
-					return item.accept(this);
-				}
-				return throwError(() => new Error("unhandled"));
-			}),
-			toArray()
-		);
+		const columns = this._visitColumns(stmt.columns);
 
 		const where$ = (row: Record<string, any>) =>
-			iif(
-				() => !!stmt.where,
-				stmt
-					.where!.accept(this, row)
-					.pipe(switchMap((include) => iif(() => include, of(row), EMPTY))),
-				of(row)
-			);
-
+			!!stmt.where
+				? stmt
+						.where!.accept(this, row)
+						.pipe(switchMap((include) => iif(() => include, of(row), EMPTY)))
+				: of(row);
 		const dataset$ = stmt.from!.accept(this) as Observable<
 			Record<string, any>[]
 		>;
 		return dataset$.pipe(
+			tap((value) => {
+				if (!Array.isArray(value)) {
+					throw new Error("dataset has to be iterable");
+				}
+			}),
 			mergeAll(),
 			mergeMap(where$),
 			toArray(),
-			withLatestFrom(columns$),
-			map(([table, columns]) => {
-				const result: Record<string, any>[] = [];
-				for (const row of table) {
-					if (columns.at(0) === "*") {
-						result.push(row);
-					} else {
-						result.push(
-							columns.reduce((acc, column) => {
-								acc[column] = row[column];
-								return acc;
-							}, {} as Record<string, any>)
-						);
+			map((table) => {
+				return this.handlers.reduce(
+					(acc, handler) => handler(acc, columns),
+					table
+				);
+			}),
+			mergeMap((result) => stmt.group?.accept(this, result) ?? of([result])),
+			mergeAll(),
+			map((result: any) => {
+				let aggregateFns: ((
+					list: Record<string, any>[]
+				) => Record<string, any>[])[] = [() => result];
+				Object.entries(this.aggregateFns).forEach(([key, callExpr]) => {
+					let functionName!: string;
+					callExpr.callee.accept(this).subscribe((value) => {
+						functionName = value;
+					});
+
+					if (functionName.toLowerCase() === "avg") {
+						aggregateFns.unshift((list) => {
+							list[0][key] =
+								list.reduce((acc: number, item: any) => {
+									return (acc += item[key]);
+								}, 0) / list.length;
+							return [list[0]];
+						});
 					}
-				}
-				return result;
+
+					if (functionName.toLowerCase() === "sum") {
+						aggregateFns.unshift((list) => {
+							list[0][key] = list.reduce((acc: number, item: any) => {
+								return (acc += item[key]);
+							}, 0);
+							return [list[0]];
+						});
+					}
+
+					if (functionName.toLowerCase() === "count") {
+						aggregateFns.push((list) => {
+							list[0][key] = list.length;
+							return [list[0]];
+						});
+					}
+				});
+				return aggregateFns.map((item) => item(result)).at(-1);
+			}),
+			toArray(),
+			map((list) => list.flat()),
+			mergeMap((list) =>
+				stmt.limit ? stmt.limit?.accept(this, list) : of(list)
+			)
+		);
+	}
+
+	public _visitColumns(
+		columns: (Identifier | Expression)[]
+	): (Identifier | Expression)[] {
+		return columns.map((item) => {
+			if (item instanceof Expression || item instanceof Identifier) {
+				return item;
+			}
+			throw new Error("Unhandled column type");
+		});
+	}
+
+	public visitLimitExpr(expr: LimitExpression, list: any[]): Observable<any> {
+		return combineLatest([
+			expr.expression.accept(this),
+			expr.offset?.accept(this) ?? of(0),
+		]).pipe(
+			map(([limit, offset]) => {
+				return list.slice(offset, limit + offset);
 			})
 		);
+	}
+
+	public visitGroupByExpr(
+		stmt: GroupByExpression,
+		context: Record<string, any>[]
+	): Observable<any> {
+		const columns = this._visitColumns(stmt.columns);
+		const result: Record<string, Record<string, any>[]> = {};
+		for (const row of context) {
+			from(columns)
+				.pipe(
+					mergeMap((node) => node.accept(this)),
+					map((column) => row[column]),
+					toArray(),
+					map((values) => values.join(","))
+				)
+				.subscribe((uniqueKey) => {
+					if (!result[uniqueKey]) {
+						result[uniqueKey] = [];
+					}
+					result[uniqueKey].push(row);
+				});
+		}
+		// const groupedResult = Object.entries(result).reduce(
+		// 	(acc, [uniqueKey, groupedResult]) => {
+		// 		groupedResult.forEach((groupedRow, index) => {
+		// 			Object.entries(groupedRow)
+		// 				.filter(([, value]) => value instanceof Function)
+		// 				.forEach(([key, value]) => {
+		// 					const prev = groupedResult[index - 1];
+		// 					groupedRow[key] = value(prev ? prev[key] : 0);
+		// 				});
+		// 		});
+		// 		acc.push(groupedResult.at(-1)!);
+		// 		return acc;
+		// 	},
+		// 	[] as Record<string, any>[]
+		// );
+		return of(Object.values(result));
+	}
+
+	public visitGroupingExpr(expr: GroupingExpression): Observable<any> {
+		throw new Error("Method not implemented.");
 	}
 
 	public execute(expr: Expression) {
