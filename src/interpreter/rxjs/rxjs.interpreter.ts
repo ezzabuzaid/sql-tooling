@@ -169,46 +169,33 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 			map((result: any) => {
 				let aggregateFns: ((
 					list: Record<string, any>[]
-				) => Record<string, any>[])[] = [() => result];
+				) => Record<string, any>[])[] = [(list) => list];
 				Object.entries(this.aggregateFns).forEach(([key, callExpr]) => {
 					let functionName!: string;
 					callExpr.callee.accept(this).subscribe((value) => {
-						functionName = value;
+						functionName = value.toLowerCase();
 					});
 
-					if (functionName.toLowerCase() === "avg") {
-						aggregateFns.unshift((list) => {
-							list[0][key] =
-								list.reduce((acc: number, item: any) => {
-									return (acc += item[key]);
-								}, 0) / list.length;
-							return [list[0]];
-						});
+					if (functionName === "avg") {
+						aggregateFns.push((list) => this.handleAvg(list, key));
 					}
 
-					if (functionName.toLowerCase() === "sum") {
-						aggregateFns.unshift((list) => {
-							list[0][key] = list.reduce((acc: number, item: any) => {
-								return (acc += item[key]);
-							}, 0);
-							return [list[0]];
-						});
+					if (functionName === "sum") {
+						aggregateFns.push((list) => this.handleSum(list, key));
 					}
 
-					if (functionName.toLowerCase() === "count") {
-						aggregateFns.push((list) => {
-							list[0][key] = list.length;
-							return [list[0]];
-						});
+					if (functionName === "count") {
+						aggregateFns.push((list) => this.handleCount(list, key));
 					}
 				});
 				return aggregateFns.map((item) => item(result)).at(-1);
 			}),
 			toArray(),
-			map((list) => list.flat()),
 			mergeMap((list) =>
 				stmt.limit ? stmt.limit?.accept(this, list) : of(list)
-			)
+			),
+			map((list) => this.result(list)),
+			tap(console.log)
 		);
 	}
 
@@ -279,5 +266,38 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 
 	public execute(expr: Expression) {
 		return expr.accept(this);
+	}
+
+	public result(list: Record<string, any>[]): Record<string, any>[] {
+		return list.flat();
+	}
+
+	public handleAvg(
+		list: Record<string, any>[],
+		columnName: string
+	): Record<string, any>[] {
+		list[0][columnName] =
+			list.reduce((acc: number, item: any) => {
+				return (acc += item[columnName]);
+			}, 0) / list.length;
+		return [list[0]];
+	}
+
+	public handleSum(
+		list: Record<string, any>[],
+		columnName: string
+	): Record<string, any>[] {
+		list[0][columnName] = list.reduce((acc: number, item: any) => {
+			return (acc += item[columnName]);
+		}, 0);
+		return [list[0]];
+	}
+
+	public handleCount(
+		list: Record<string, any>[],
+		columnName: string
+	): Record<string, any>[] {
+		list[0][columnName] = list.length;
+		return [list[0]];
 	}
 }

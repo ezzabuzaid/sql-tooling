@@ -26,9 +26,7 @@ export default {
 		const at = (pos: number) => expr.args[pos].accept(visitor);
 		return at(0).pipe(
 			map((columnName) => {
-				return (prevValue: number) => {
-					return prevValue + 1;
-				};
+				return 1;
 			})
 		);
 	},
@@ -41,9 +39,6 @@ export default {
 		return at(0).pipe(
 			map((columnName) => {
 				return context[columnName];
-				// return (prevValue: number) => {
-				// 	return context[columnName] + prevValue;
-				// };
 			})
 		);
 	},
@@ -56,9 +51,6 @@ export default {
 		return at(0).pipe(
 			map((columnName) => {
 				return context[columnName];
-				// return (prevValue: number) => {
-				// 	return context[columnName] + prevValue;
-				// };
 			})
 		);
 	},
