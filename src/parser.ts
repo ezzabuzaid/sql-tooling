@@ -57,14 +57,20 @@ export class Parser {
 			statement.all = true;
 		}
 
-		if (this._match(TokenType.STAR)) {
-			statement.columns.push(this._factory.createIdentifier("*"));
-		}
+		// if (this._match(TokenType.STAR)) {
+		// 	statement.columns.push(this._factory.createIdentifier("*"));
+		// }
 		// if (this._match(TokenType.IDENTIFIER, TokenType.STRING))
-		else {
-			do {
-				statement.columns.push(this._expression());
-			} while (this._match(TokenType.COMMA));
+		// else {
+		do {
+			statement.columns.push(this._expression());
+		} while (this._match(TokenType.COMMA));
+		// }
+
+		const columnsNames = statement.columns.map((node) => node.toLiteral());
+		// Handling cases like "select *, id from test;""
+		if (statement.columns.length > 1 && columnsNames.includes("*")) {
+			throw new Error("Cannot use '*' with other columns");
 		}
 
 		if (this._match(TokenType.FROM)) {
@@ -94,6 +100,37 @@ export class Parser {
 				statement.group.columns.push(this._expression());
 			} while (this._match(TokenType.COMMA));
 		}
+
+		// Handling cases where count(*) with other columns are used by not appearing
+		// in group by clause e.g. "select count(*), id from test;" without group by
+		// correct version is "select count(*), id from test group by id"
+		// const groupByColumnsNames = (statement.group?.columns ?? []).map((node) =>
+		// 	node.toLiteral()
+		// );
+		// if (
+		// 	statement.columns.length > 1 &&
+		// 	columnsNames.some((item) =>
+		// 		AGGREGATE_FUNCTIONS.some((fnName) => item.startsWith(fnName))
+		// 	)
+		// ) {
+		// 	const columnsListInGroupBy = columnsNames
+		// 		.filter(
+		// 			(node) =>
+		// 				!AGGREGATE_FUNCTIONS.some((fnName) => node.startsWith(fnName))
+		// 		)
+		// 		.every((name) => groupByColumnsNames.includes(name));
+		// 	if (!columnsListInGroupBy) {
+		// 		throw new Error(
+		// 			`Columns names with count(*) should be included in group by clause`
+		// 		);
+		// 	}
+		// }
+
+		// groupByColumnsNames.forEach((name) => {
+		// 	if (AGGREGATE_FUNCTIONS.some((aggFn) => name.startsWith(aggFn))) {
+		// 		throw new Error("Cannot have aggregate function in group by clause");
+		// 	}
+		// });
 
 		if (this._match(TokenType.HAVING)) {
 			this._consume(TokenType.BY, "Expect 'BY' after HAVING keyword.");
@@ -142,6 +179,15 @@ export class Parser {
 	private _primary(): Expression {
 		const token = this._currentToken;
 
+		if (this._match(TokenType.STAR)) {
+			return this._factory.createIdentifier(token.lexeme);
+		}
+
+		// if (this._match(TokenType.DISTINCT)) {
+		// 	let expression = this._expression();
+		// 	return this._factory.createIdentifier(token.lexeme);
+		// }
+
 		if (this._match(TokenType.IDENTIFIER)) {
 			return new Identifier(token.lexeme);
 		}
@@ -189,7 +235,7 @@ export class Parser {
 			}
 		}
 
-		throw new Error(`Invalid primary ${token.lexeme}`);
+		throw new Error(`Invalid primary: ${token.type} - ${token.lexeme}`);
 	}
 
 	private _finishCall(callee: Expression): Expression {
@@ -252,9 +298,6 @@ export class Parser {
 		}
 		return expression;
 	}
-
-	// WHERE year = 2013
-	// AND year_rank  BETWEEN 2 AND 3
 
 	private _rangeContainment(): Expression {
 		let expression = this._term();

@@ -1,17 +1,15 @@
-global.XMLHttpRequest = require("xhr2");
-
 import { Factory } from "./factory/factory";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
-SELECT id, title from posts;
+--SELECT COUNT(DISTINCT c) FROM t1;
 `;
 
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-// console.log(JSON.stringify(ast, null, 2));
+console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
 
 // writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
