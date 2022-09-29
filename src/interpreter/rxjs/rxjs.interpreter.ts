@@ -15,7 +15,7 @@ import {
 } from "rxjs";
 import { Expression } from "../../classes/expression";
 import { Identifier } from "../../classes/identifier";
-import { SelectStatement } from "../../classes/select_statements";
+import { SelectStatement } from "../../classes/statements/select.statements";
 import { Visitor } from "../visitor";
 
 import { BinaryExpression } from "../../classes/binary.expression";
@@ -27,11 +27,15 @@ import { BooleanLiteral } from "../../classes/literals/boolean.literal";
 import { NullLiteral } from "../../classes/literals/null.literal";
 import { NumericLiteral } from "../../classes/literals/numeric.literal";
 import { StringLiteral } from "../../classes/literals/string.literal";
+import { CreateStatement } from "../../classes/statements/create.statements";
 import { UnaryExpression } from "../../classes/unary.expression";
 import { AGGREGATE_FUNCTIONS, TokenType } from "../../tokenizer";
 import default_callHandler from "./default_call.handler";
 
 export class RxJsInterpreter extends Visitor<Observable<any>> {
+	public visitCreateStmt(stmt: CreateStatement): Observable<any> {
+		throw new Error("Method not implemented.");
+	}
 	public aggregateFns: Record<string, CallExpression> = {};
 	public handlers: ((
 		table: Record<string, any>[],

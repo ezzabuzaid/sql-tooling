@@ -15,7 +15,13 @@ import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
 import { OrderExpression } from "../classes/order_expression";
-import { SelectStatement } from "../classes/select_statements";
+import {
+	ColumnDefinition,
+	Constraint,
+	CreateStatement,
+	PrimaryKey,
+} from "../classes/statements/create.statements";
+import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression, UnaryToken } from "../classes/unary.expression";
 import { UnknownTokenType } from "../errors/unknown_token_type.error";
 import { IToken, TokenType } from "../tokenizer";
@@ -45,6 +51,20 @@ export const keywords: Record<string, TokenType> = {
 	as: TokenType.AS,
 	by: TokenType.BY,
 	select: TokenType.SELECT,
+	create: TokenType.CREATE,
+	table: TokenType.TABLE,
+	integer: TokenType.INTEGER,
+	int: TokenType.INTEGER,
+	text: TokenType.TEXT,
+	real: TokenType.REAL,
+	blob: TokenType.BLOB,
+	unique: TokenType.UNIQUE,
+	primary: TokenType.PRIMARY,
+	key: TokenType.KEY,
+	temp: TokenType.TEMP,
+	temporary: TokenType.TEMP,
+	check: TokenType.CHECK,
+	default: TokenType.DEFAULT,
 	from: TokenType.FROM,
 	desc: TokenType.DESC,
 	asc: TokenType.ASC,
@@ -95,6 +115,19 @@ export class Factory {
 		const expression = new UnaryExpression(operator, right);
 		return expression;
 	}
+
+	public createCreateStatement(
+		name: Identifier,
+		temp?: boolean,
+		primaryKey?: PrimaryKey
+	): CreateStatement {
+		const statement = new CreateStatement();
+		statement.name = name;
+		statement.temp = temp;
+		statement.primaryKey = primaryKey;
+		return statement;
+	}
+
 	public createSelectStatement(
 		columns: (Expression | Identifier)[],
 		from?: Expression,
@@ -111,6 +144,18 @@ export class Factory {
 		return statement;
 	}
 
+	public createConstraint(columns: Identifier[]): Constraint {
+		const key = new Constraint();
+		key.columns = columns;
+		return key;
+	}
+
+	// public createPrimaryKey(columns: Identifier[]): PrimaryKey {
+	// 	const key = new PrimaryKey();
+	// 	key.columns = columns;
+	// 	return key;
+	// }
+
 	public createIdentifier(name: string, alias?: string): Identifier {
 		return new Identifier(name, alias);
 	}
@@ -121,6 +166,24 @@ export class Factory {
 
 	public createColumnIdentifier(name: string, alias?: string): Identifier {
 		return new ColumnIdentifier(name, alias);
+	}
+
+	public createColumnDefinition(
+		name: Identifier,
+		dataType: Identifier,
+		nullable?: boolean,
+		unique?: boolean,
+		check?: Expression,
+		defaultValue?: Identifier
+	): ColumnDefinition {
+		const columnDef = new ColumnDefinition();
+		columnDef.name = name;
+		columnDef.dataType = dataType;
+		columnDef.nullable = nullable;
+		columnDef.unique = unique;
+		columnDef.check = check;
+		columnDef.default = defaultValue;
+		return columnDef;
 	}
 
 	public createFromIdentifier(name: string): Identifier {

@@ -62,6 +62,18 @@ export enum TokenType {
 	EXISTS = 924,
 	JOIN = 925,
 	CROSS = 926,
+	CREATE = 927,
+	TABLE = 928,
+	INTEGER = 929,
+	TEXT = 930,
+	PRIMARY = 931,
+	UNIQUE = 932,
+	TEMP = 933,
+	KEY = 934,
+	CHECK = 935,
+	DEFAULT = 936,
+	BLOB = 937,
+	REAL = 938,
 
 	// Clauses
 	ORDER = 1201,

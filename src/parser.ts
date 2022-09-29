@@ -13,24 +13,33 @@ import { NumericLiteral } from "./classes/literals/numeric.literal";
 import { StringLiteral } from "./classes/literals/string.literal";
 import { OrderExpression } from "./classes/order_expression";
 import { Statement } from "./classes/statement";
+import {
+	ColumnDefinition,
+	PrimaryKey,
+} from "./classes/statements/create.statements";
 import { UnknownToken } from "./errors/unknown_token.error";
 import { Factory } from "./factory/factory";
 import { IToken, TokenType } from "./tokenizer";
 
+const factory = new Factory();
 export class Parser {
 	private _current = 0;
-	private _factory = new Factory();
 	constructor(private _tokens: IToken<TokenType>[]) {}
 
-	parse() {
+	parse(): Statement[] {
 		const tree: Statement[] = [];
 		while (!this._isAtEnd()) {
 			let token = this._tokens[this._current];
 
 			switch (token.type) {
 				case TokenType.SELECT:
-					const statement = this._selectStatement();
-					tree.push(statement);
+					const selectStatement = this._selectStatement();
+					tree.push(selectStatement);
+					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+					break;
+				case TokenType.CREATE:
+					let createStatement = this._createStatement();
+					tree.push(createStatement);
 					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 					break;
 				case TokenType.SEMICOLON:
@@ -48,9 +57,109 @@ export class Parser {
 		return this._tokens[this._current];
 	}
 
-	private _selectStatement() {
+	private _isConstraint() {
+		return this._check(TokenType.NOT, TokenType.UNIQUE, TokenType.CHECK);
+	}
+
+	private _listConstraint(): PrimaryKey {
+		const columns: Identifier[] = [];
+		if (this._match(TokenType.LEFT_PAREN)) {
+			do {
+				columns.push(factory.createIdentifier(this._currentToken.lexeme));
+				this._advance();
+			} while (this._match(TokenType.COMMA));
+			this._consume(TokenType.RIGHT_PAREN, `Primary key missing right paren.`);
+		}
+		const primaryKey = factory.createConstraint(columns);
+		return primaryKey;
+	}
+
+	private _columnDefinition(): ColumnDefinition {
+		let unique = true;
+		let nullable = true;
+		let check: Expression | undefined;
+		let defaultValue: any;
+		const columnNameToken = this._currentToken;
 		this._advance();
-		const statement = this._factory.createSelectStatement([]);
+		const dataTypeToken = this._currentToken;
+		this._advance();
+		if (this._match(TokenType.PRIMARY)) {
+			throw new Error("Primary key is not supported at column level.");
+		}
+
+		while (this._isConstraint()) {
+			if (this._match(TokenType.NOT)) {
+				this._consume(
+					TokenType.NULL,
+					"Literal NULL is missing after NOT keyword"
+				);
+				nullable = false;
+			} else if (this._match(TokenType.UNIQUE)) {
+				unique = false;
+			} else if (this._match(TokenType.CHECK)) {
+				check = this._expression();
+			} else if (this._match(TokenType.DEFAULT)) {
+				defaultValue = factory.createIdentifier(this._currentToken.lexeme);
+			} else {
+				throw new Error(
+					"Constraint not supported " + this._currentToken.lexeme
+				);
+			}
+		}
+
+		const columnDef = factory.createColumnDefinition(
+			factory.createIdentifier(columnNameToken.lexeme),
+			factory.createIdentifier(dataTypeToken.lexeme),
+			nullable,
+			unique,
+			check,
+			defaultValue
+		);
+		return columnDef;
+	}
+
+	private _createStatement(): Statement {
+		this._advance();
+		let temp = false;
+		this._consume(
+			TokenType.TABLE,
+			`CREATE keyword should be followed by TABLE keyword.`
+		);
+		if (this._match(TokenType.TEMP)) {
+			temp = true;
+		}
+		const tableNameToken = this._currentToken;
+		this._advance();
+		const statement = factory.createCreateStatement(
+			factory.createIdentifier(tableNameToken.lexeme),
+			temp
+		);
+		this._consume(TokenType.LEFT_PAREN, `Missing left paren.`);
+
+		do {
+			if (this._match(TokenType.PRIMARY)) {
+				this._consume(
+					TokenType.KEY,
+					"Keyword KEY is missing after PRIMARY keyword"
+				);
+				statement.primaryKey = this._listConstraint();
+			} else if (this._match(TokenType.UNIQUE)) {
+				statement.primaryKey = this._listConstraint();
+			} else if (this._match(TokenType.CHECK)) {
+				statement.check = this._expression();
+			} else {
+				statement.columns.push(this._columnDefinition());
+			}
+		} while (this._match(TokenType.COMMA));
+
+		this._consume(TokenType.RIGHT_PAREN, `Missing right paren.`);
+
+		return statement;
+	}
+
+	private _selectStatement(): Statement {
+		this._advance();
+		const statement = factory.createSelectStatement([]);
 		if (this._match(TokenType.DISTINCT)) {
 			statement.distinct = true;
 		} else if (this._match(TokenType.ALL)) {
@@ -58,7 +167,7 @@ export class Parser {
 		}
 
 		// if (this._match(TokenType.STAR)) {
-		// 	statement.columns.push(this._factory.createIdentifier("*"));
+		// 	statement.columns.push(factory.createIdentifier("*"));
 		// }
 		// if (this._match(TokenType.IDENTIFIER, TokenType.STRING))
 		// else {
@@ -180,12 +289,12 @@ export class Parser {
 		const token = this._currentToken;
 
 		if (this._match(TokenType.STAR)) {
-			return this._factory.createIdentifier(token.lexeme);
+			return factory.createIdentifier(token.lexeme);
 		}
 
 		// if (this._match(TokenType.DISTINCT)) {
 		// 	let expression = this._expression();
-		// 	return this._factory.createIdentifier(token.lexeme);
+		// 	return factory.createIdentifier(token.lexeme);
 		// }
 
 		if (this._match(TokenType.IDENTIFIER)) {
@@ -221,12 +330,12 @@ export class Parser {
 			// this._advance();
 			switch (this._currentToken.type) {
 				case TokenType.SELECT:
-					let statement = this._selectStatement();
+					let selectStatement = this._selectStatement();
 					this._consume(
 						TokenType.RIGHT_PAREN,
 						"Expect ')' at the end of 'SELECT statement'"
 					);
-					return statement;
+					return selectStatement;
 				default:
 					let expression = this._expression();
 					expression = new GroupingExpression(expression);
@@ -265,7 +374,7 @@ export class Parser {
 	private _unary(): Expression {
 		if (this._match(TokenType.NOT, TokenType.MINUS, TokenType.EXISTS)) {
 			const right = this._unary();
-			return this._factory.createUnaryExpression(this._previous(), right);
+			return factory.createUnaryExpression(this._previous(), right);
 		}
 
 		// if (this._match(TokenType.EXISTS)) {
@@ -348,7 +457,7 @@ export class Parser {
 		// if (this._match(TokenType.IS)) {
 		// 	if (this._match(TokenType.NOT)) {
 		// 		const right = this._comparison();
-		// 		const operator = this._factory.createToken(TokenType.IS_NOT); // FIXME: should be created in the tokenizer because of line, start and end to be correct
+		// 		const operator = factory.createToken(TokenType.IS_NOT); // FIXME: should be created in the tokenizer because of line, start and end to be correct
 		// 		expression = new BinaryExpression(expression, operator, right);
 		// 	}
 		// }

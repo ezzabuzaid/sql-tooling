@@ -9,8 +9,9 @@ import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
-import { SelectStatement } from "../classes/select_statements";
 import { Statement } from "../classes/statement";
+import { CreateStatement } from "../classes/statements/create.statements";
+import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Factory } from "../factory/factory";
 import { Visitor } from "./visitor";
@@ -18,6 +19,9 @@ const factory = new Factory();
 
 type Node = Expression | Statement | Identifier;
 export class MutateVisitor extends Visitor<Node> {
+	public visitCreateStmt(stmt: CreateStatement): Node {
+		throw new Error("Method not implemented.");
+	}
 	public visitLimitExpr(expr: LimitExpression, context?: any): Node {
 		throw new Error("Method not implemented.");
 	}

@@ -13,6 +13,7 @@ export type Varient =
 	| "group"
 	| "order"
 	| "operation"
+	| "create"
 	| "select"
 	| "update"
 	| "alter"

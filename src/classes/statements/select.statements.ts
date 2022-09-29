@@ -1,9 +1,9 @@
-import { Visitor } from "../interpreter/visitor";
-import { Expression } from "./expression";
-import { GroupByExpression } from "./group_expression";
-import { Identifier } from "./identifier";
-import { Statement } from "./statement";
-import { Varient } from "./varient";
+import { Visitor } from "../../interpreter/visitor";
+import { Expression } from "../expression";
+import { GroupByExpression } from "../group_expression";
+import { Identifier } from "../identifier";
+import { Statement } from "../statement";
+import { Varient } from "../varient";
 
 export class SelectStatement extends Statement {
 	public override varient: Varient = "select";

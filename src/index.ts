@@ -2,7 +2,19 @@ import { Factory } from "./factory/factory";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
---SELECT COUNT(DISTINCT c) FROM t1;
+SELECT *
+FROM tutorial
+ORDER BY year DESC, year_rank;
+CREATE TABLE COMPANY3(
+   ID INT NOT NULL,
+   NAME TEXT    NOT NULL,
+   AGE            INT     NOT NULL,
+   ADDRESS        TEXT,
+   SALARY         REAL   ,
+   unique (ID, ADDRESS),
+   primary key (ID, ADDRESS),
+    CHECK(SALARY > 0)
+);
 `;
 
 const tokenizer = new Tokenizer(program);
