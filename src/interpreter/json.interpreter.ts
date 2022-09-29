@@ -9,13 +9,19 @@ import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
-import { CreateStatement } from "../classes/statements/create.statements";
+import {
+	ColumnDefinition,
+	CreateStatement,
+} from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { TokenType } from "../tokenizer";
 import { Visitor } from "./visitor";
 
 export class JsonInterpreter extends Visitor<any> {
+	public visitColumnDefinition(definition: ColumnDefinition) {
+		throw new Error("Method not implemented.");
+	}
 	public visitCreateStmt(stmt: CreateStatement) {
 		throw new Error("Method not implemented.");
 	}
@@ -119,7 +125,7 @@ export class JsonInterpreter extends Visitor<any> {
 	}
 
 	public visitIdentifier(expr: Identifier): string {
-		return expr.alias || expr.text;
+		return expr.toLiteral();
 	}
 
 	public execute(expr: Expression) {

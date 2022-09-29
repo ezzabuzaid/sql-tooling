@@ -10,7 +10,10 @@ import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
 import { Statement } from "../classes/statement";
-import { CreateStatement } from "../classes/statements/create.statements";
+import {
+	ColumnDefinition,
+	CreateStatement,
+} from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Factory } from "../factory/factory";
@@ -19,6 +22,9 @@ const factory = new Factory();
 
 type Node = Expression | Statement | Identifier;
 export class MutateVisitor extends Visitor<Node> {
+	public visitColumnDefinition(definition: ColumnDefinition): Node {
+		throw new Error("Method not implemented.");
+	}
 	public visitCreateStmt(stmt: CreateStatement): Node {
 		throw new Error("Method not implemented.");
 	}

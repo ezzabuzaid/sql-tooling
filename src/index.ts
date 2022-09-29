@@ -1,21 +1,19 @@
+import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
+import { OpenApiVisitor } from "./interpreter/json-schema";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
-SELECT *
-FROM tutorial
-ORDER BY year DESC, year_rank;
-CREATE TABLE COMPANY3(
-   ID INT NOT NULL,
-   NAME TEXT    NOT NULL,
-   AGE            INT     NOT NULL,
-   ADDRESS        TEXT,
-   SALARY         REAL   ,
-   unique (ID, ADDRESS),
-   primary key (ID, ADDRESS),
-    CHECK(SALARY > 0)
+CREATE TABLE tutorial(
+   Id INT NOT NULL,
+   Name TEXT NOT NULL,
+   Age INT NOT NULL,
+   Address TEXT,
+   Salary REAL
 );
+SELECT Id, Name FROM tutorial;
 `;
+// ORDER BY year DESC, year_rank;
 
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
@@ -23,7 +21,11 @@ const parser = new Parser(tokens);
 const ast = parser.parse();
 console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
-
+const openApi = new OpenApiVisitor().execute(ast, {
+	title: "SQL Magic",
+	version: "1.0.0",
+});
+writeFileSync("openapi.g.json", openApi, "utf-8");
 // writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
 
 // walk(

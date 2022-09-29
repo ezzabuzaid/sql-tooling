@@ -8,7 +8,10 @@ import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
-import { CreateStatement } from "../classes/statements/create.statements";
+import {
+	ColumnDefinition,
+	CreateStatement,
+} from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 
@@ -27,6 +30,7 @@ export abstract class Visitor<R> {
 	public abstract visitIdentifier(expr: Identifier): R;
 	public abstract visitSelectStmt(stmt: SelectStatement): R;
 	public abstract visitCreateStmt(stmt: CreateStatement): R;
+	public abstract visitColumnDefinition(definition: ColumnDefinition): R;
 	public abstract visitGroupByExpr(expr: GroupByExpression, context?: any): R;
 	public abstract visitLimitExpr(expr: LimitExpression, context?: any): R;
 }

@@ -1,0 +1,1 @@
+{"paths":{"/sql":{"get":{"responses":{"200":{"description":"","content":{"application/json":{"schema":{"properties":{"Id":{"type":"integer"},"Name":{"type":"string"}}}}}}}}}},"openapi":"3.0.0","security":[{}],"components":{"schemas":{}},"info":{"title":"SQL Magic","version":"1.0.0"}}

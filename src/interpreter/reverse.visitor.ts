@@ -9,12 +9,18 @@ import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
-import { CreateStatement } from "../classes/statements/create.statements";
+import {
+	ColumnDefinition,
+	CreateStatement,
+} from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Visitor } from "./visitor";
 
 export class ReverseVisitor extends Visitor<string> {
+	public visitColumnDefinition(definition: ColumnDefinition): string {
+		throw new Error("Method not implemented.");
+	}
 	public visitCreateStmt(stmt: CreateStatement): string {
 		throw new Error("Method not implemented.");
 	}

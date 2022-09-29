@@ -19,6 +19,7 @@ import {
 	ColumnDefinition,
 	Constraint,
 	CreateStatement,
+	DataType,
 	PrimaryKey,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
@@ -57,6 +58,8 @@ export const keywords: Record<string, TokenType> = {
 	int: TokenType.INTEGER,
 	text: TokenType.TEXT,
 	real: TokenType.REAL,
+	bool: TokenType.BOOL,
+	boolean: TokenType.BOOL,
 	blob: TokenType.BLOB,
 	unique: TokenType.UNIQUE,
 	primary: TokenType.PRIMARY,
@@ -170,7 +173,7 @@ export class Factory {
 
 	public createColumnDefinition(
 		name: Identifier,
-		dataType: Identifier,
+		dataType: IToken<DataType>,
 		nullable?: boolean,
 		unique?: boolean,
 		check?: Expression,

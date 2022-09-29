@@ -15,6 +15,7 @@ import { OrderExpression } from "./classes/order_expression";
 import { Statement } from "./classes/statement";
 import {
 	ColumnDefinition,
+	DataType,
 	PrimaryKey,
 } from "./classes/statements/create.statements";
 import { UnknownToken } from "./errors/unknown_token.error";
@@ -81,7 +82,7 @@ export class Parser {
 		let defaultValue: any;
 		const columnNameToken = this._currentToken;
 		this._advance();
-		const dataTypeToken = this._currentToken;
+		const dataTypeToken = this._currentToken as IToken<DataType>;
 		this._advance();
 		if (this._match(TokenType.PRIMARY)) {
 			throw new Error("Primary key is not supported at column level.");
@@ -109,7 +110,7 @@ export class Parser {
 
 		const columnDef = factory.createColumnDefinition(
 			factory.createIdentifier(columnNameToken.lexeme),
-			factory.createIdentifier(dataTypeToken.lexeme),
+			dataTypeToken,
 			nullable,
 			unique,
 			check,

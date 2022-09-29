@@ -9,6 +9,6 @@ export class Identifier {
 		return visitor.visitIdentifier(this);
 	}
 	public toLiteral(): string {
-		return this.text;
+		return this.alias || this.text;
 	}
 }

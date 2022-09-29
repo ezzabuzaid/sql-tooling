@@ -1,4 +1,5 @@
 import { Visitor } from "../../interpreter/visitor";
+import { IToken, TokenType } from "../../tokenizer";
 import { Expression } from "../expression";
 import { Identifier } from "../identifier";
 import { Statement } from "../statement";
@@ -55,19 +56,20 @@ export class Constraint extends Definition {
 export class ColumnDefinition extends Definition {
 	public nullable?: boolean;
 	public unique?: boolean;
-	public name?: Identifier;
-	public dataType?: Identifier;
 	public check?: Expression;
 	public default?: Identifier;
+	public dataType!: IToken<DataType>;
+	public name!: Identifier;
 	constructor() {
 		super();
 	}
 
 	public accept<R>(visitor: Visitor<R>): R {
-		throw new Error("Method not implemented.");
+		return visitor.visitColumnDefinition(this);
 	}
 
 	public toLiteral(): string {
 		throw new Error("Method not implemented.");
 	}
 }
+export type DataType = TokenType.INTEGER | TokenType.REAL | TokenType.TEXT;

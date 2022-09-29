@@ -27,12 +27,18 @@ import { BooleanLiteral } from "../../classes/literals/boolean.literal";
 import { NullLiteral } from "../../classes/literals/null.literal";
 import { NumericLiteral } from "../../classes/literals/numeric.literal";
 import { StringLiteral } from "../../classes/literals/string.literal";
-import { CreateStatement } from "../../classes/statements/create.statements";
+import {
+	ColumnDefinition,
+	CreateStatement,
+} from "../../classes/statements/create.statements";
 import { UnaryExpression } from "../../classes/unary.expression";
 import { AGGREGATE_FUNCTIONS, TokenType } from "../../tokenizer";
 import default_callHandler from "./default_call.handler";
 
 export class RxJsInterpreter extends Visitor<Observable<any>> {
+	public visitColumnDefinition(definition: ColumnDefinition): Observable<any> {
+		throw new Error("Method not implemented.");
+	}
 	public visitCreateStmt(stmt: CreateStatement): Observable<any> {
 		throw new Error("Method not implemented.");
 	}
@@ -138,7 +144,7 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 	}
 
 	public visitIdentifier(expr: Identifier): Observable<any> {
-		return of(expr.alias || expr.text);
+		return of(expr.toLiteral());
 	}
 
 	public visitSelectStmt(stmt: SelectStatement): Observable<any> {
