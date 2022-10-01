@@ -27,6 +27,7 @@ import { BooleanLiteral } from "../../classes/literals/boolean.literal";
 import { NullLiteral } from "../../classes/literals/null.literal";
 import { NumericLiteral } from "../../classes/literals/numeric.literal";
 import { StringLiteral } from "../../classes/literals/string.literal";
+import { Statement } from "../../classes/statement";
 import {
 	ColumnDefinition,
 	CreateStatement,
@@ -274,8 +275,12 @@ export class RxJsInterpreter extends Visitor<Observable<any>> {
 		throw new Error("Method not implemented.");
 	}
 
-	public execute(expr: Expression) {
-		return expr.accept(this);
+	public execute(stmts: Statement[]) {
+		const select = stmts.find((item) => item instanceof SelectStatement);
+		if (!select) {
+			throw new Error();
+		}
+		return select.accept(this);
 	}
 
 	public result(list: Record<string, any>[]): Record<string, any>[] {

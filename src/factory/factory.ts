@@ -60,6 +60,7 @@ export const keywords: Record<string, TokenType> = {
 	real: TokenType.REAL,
 	bool: TokenType.BOOL,
 	boolean: TokenType.BOOL,
+	date: TokenType.DATE,
 	blob: TokenType.BLOB,
 	unique: TokenType.UNIQUE,
 	primary: TokenType.PRIMARY,

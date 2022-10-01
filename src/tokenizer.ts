@@ -74,7 +74,8 @@ export enum TokenType {
 	DEFAULT = 936,
 	BLOB = 937,
 	REAL = 938,
-	BOOL = 938,
+	BOOL = 939,
+	DATE = 940,
 
 	// Clauses
 	ORDER = 1201,

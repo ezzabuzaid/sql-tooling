@@ -72,4 +72,9 @@ export class ColumnDefinition extends Definition {
 		throw new Error("Method not implemented.");
 	}
 }
-export type DataType = TokenType.INTEGER | TokenType.REAL | TokenType.TEXT;
+export type DataType =
+	| TokenType.INTEGER
+	| TokenType.REAL
+	| TokenType.TEXT
+	| TokenType.DATE
+	| TokenType.BOOL;

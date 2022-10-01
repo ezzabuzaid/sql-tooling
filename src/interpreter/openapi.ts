@@ -1,5 +1,5 @@
 import * as openapi from "openapi3-ts";
-import { SchemaObject, SchemasObject } from "openapi3-ts";
+import { OpenAPIObject, SchemaObject, SchemasObject } from "openapi3-ts";
 import { BinaryExpression } from "../classes/binary.expression";
 import { CallExpression } from "../classes/call.expression";
 import { GroupingExpression } from "../classes/grouping.expression";
@@ -62,6 +62,7 @@ export class OpenApiVisitor extends Visitor<Node> {
 			[TokenType.TEXT]: "string",
 			[TokenType.REAL]: "number",
 			[TokenType.BOOL]: "boolean",
+			[TokenType.DATE]: "date",
 		};
 		return {
 			[definition.name.text]: {
@@ -85,6 +86,7 @@ export class OpenApiVisitor extends Visitor<Node> {
 		);
 		return {
 			get: {
+				tags: [stmt.from?.toLiteral()!],
 				responses: {
 					"200": {
 						description: "",
@@ -106,7 +108,7 @@ export class OpenApiVisitor extends Visitor<Node> {
 		throw new Error("Method not implemented.");
 	}
 
-	public execute(stms: Statement[], info: openapi.InfoObject): any {
+	public execute(stms: Statement[], info: openapi.InfoObject): OpenAPIObject {
 		const createStatementIndex = stms.findIndex(
 			(item) => item instanceof CreateStatement
 		);
@@ -129,6 +131,6 @@ export class OpenApiVisitor extends Visitor<Node> {
 			},
 			info: info,
 		});
-		return this._builder.getSpecAsJson();
+		return this._builder.getSpec();
 	}
 }

@@ -1,6 +1,5 @@
-import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
-import { OpenApiVisitor } from "./interpreter/json-schema";
+import { OpenApiVisitor } from "./interpreter/openapi";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
@@ -11,7 +10,16 @@ CREATE TABLE tutorial(
    Address TEXT,
    Salary REAL
 );
-SELECT Id, Name FROM tutorial;
+
+--
+SELECT Id, Name FROM tutorial as BasicTutorial;
+--
+
+--
+UPDATE tutorial as UpdateUser
+SET ContactName = 'Alfred Schmidt', City= 'Frankfurt'
+WHERE CustomerID = 1;
+--
 `;
 // ORDER BY year DESC, year_rank;
 
@@ -19,13 +27,13 @@ const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-console.log(JSON.stringify(ast, null, 2));
+// console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
 const openApi = new OpenApiVisitor().execute(ast, {
 	title: "SQL Magic",
 	version: "1.0.0",
 });
-writeFileSync("openapi.g.json", openApi, "utf-8");
+// writeFileSync("openapi.g.json", JSON.stringify(openApi), "utf-8");
 // writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
 
 // walk(
@@ -105,8 +113,11 @@ writeFileSync("openapi.g.json", openApi, "utf-8");
 // call         → primary ( "(" (arguments?) ")" )*;
 // primary      → IDENTIFIER | NUMBER | STRING | NULL | "true" | "false" | "(" expression ")";
 // arguments    → expression | ("," expression)*
+export * from "./classes/statements/create.statements";
+export * from "./classes/statements/select.statements";
 export * from "./interpreter/json.interpreter";
 export * from "./interpreter/mutate.visitor";
+export * from "./interpreter/openapi";
 export * from "./interpreter/reverse.visitor";
 export * from "./interpreter/rxjs/rxjs.interpreter";
 export * from "./interpreter/visitor";
