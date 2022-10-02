@@ -23,6 +23,7 @@ import {
 	PrimaryKey,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
 import { UnaryExpression, UnaryToken } from "../classes/unary.expression";
 import { UnknownTokenType } from "../errors/unknown_token_type.error";
 import { IToken, TokenType } from "../tokenizer";
@@ -99,6 +100,8 @@ export const keywords: Record<string, TokenType> = {
 	exists: TokenType.EXISTS,
 	join: TokenType.JOIN,
 	cross: TokenType.CROSS,
+	update: TokenType.UPDATE,
+	set: TokenType.SET,
 };
 
 export class Factory {
@@ -129,6 +132,20 @@ export class Factory {
 		statement.name = name;
 		statement.temp = temp;
 		statement.primaryKey = primaryKey;
+		return statement;
+	}
+
+	public createUpdateStatement(
+		table: Expression | Identifier,
+		columns: (Expression | Identifier)[],
+		from?: Expression,
+		where?: Expression
+	): UpdateStatement {
+		const statement = new UpdateStatement();
+		statement.table = table;
+		statement.columns = columns;
+		statement.from = from;
+		statement.where = where;
 		return statement;
 	}
 

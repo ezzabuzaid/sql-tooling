@@ -1,3 +1,4 @@
+import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
 import { OpenApiVisitor } from "./interpreter/openapi";
 import { Parser } from "./parser";
@@ -16,24 +17,22 @@ SELECT Id, Name FROM tutorial as BasicTutorial;
 --
 
 --
-UPDATE tutorial as UpdateUser
-SET ContactName = 'Alfred Schmidt', City= 'Frankfurt'
-WHERE CustomerID = 1;
+UPDATE tutorial
+SET Name = '?', Age = '?'
+WHERE Id = 'CURRENT';
 --
 `;
-// ORDER BY year DESC, year_rank;
-
 const tokenizer = new Tokenizer(program);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-// console.log(JSON.stringify(ast, null, 2));
+console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
 const openApi = new OpenApiVisitor().execute(ast, {
 	title: "SQL Magic",
 	version: "1.0.0",
 });
-// writeFileSync("openapi.g.json", JSON.stringify(openApi), "utf-8");
+writeFileSync("openapi.g.json", JSON.stringify(openApi), "utf-8");
 // writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
 
 // walk(

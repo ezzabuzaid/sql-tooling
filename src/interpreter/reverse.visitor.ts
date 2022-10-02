@@ -14,10 +14,14 @@ import {
 	CreateStatement,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Visitor } from "./visitor";
 
 export class ReverseVisitor extends Visitor<string> {
+	public visitUpdateStmt(stmt: UpdateStatement): string {
+		throw new Error("Method not implemented.");
+	}
 	public visitColumnDefinition(definition: ColumnDefinition): string {
 		throw new Error("Method not implemented.");
 	}

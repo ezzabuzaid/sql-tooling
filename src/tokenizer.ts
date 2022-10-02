@@ -76,6 +76,8 @@ export enum TokenType {
 	REAL = 938,
 	BOOL = 939,
 	DATE = 940,
+	UPDATE = 941,
+	SET = 942,
 
 	// Clauses
 	ORDER = 1201,

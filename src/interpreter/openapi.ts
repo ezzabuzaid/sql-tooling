@@ -17,6 +17,7 @@ import {
 	DataType,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { TokenType } from "../tokenizer";
 import { Visitor } from "./visitor";
@@ -48,9 +49,12 @@ export class OpenApiVisitor extends Visitor<Node> {
 		throw new Error("Method not implemented.");
 	}
 	public visitStringLiteralExpr(expr: StringLiteral): Node {
-		throw new Error("Method not implemented.");
+		return expr.value;
 	}
 	public visitIdentifier(expr: Identifier): openapi.SchemasObject {
+		if (!this._schema![expr.text]) {
+			throw new Error(`Cannot find ${expr.text} in schema.`);
+		}
 		return {
 			[expr.toLiteral()]: this._schema![expr.text],
 		};
@@ -78,7 +82,45 @@ export class OpenApiVisitor extends Visitor<Node> {
 		);
 		this._schema = defs;
 	}
-
+	public visitUpdateStmt(stmt: UpdateStatement): openapi.PathItemObject {
+		const properties = stmt.columns.reduce((acc, item) => {
+			if (item instanceof BinaryExpression) {
+				if (!(item.right instanceof StringLiteral)) {
+					throw new Error(
+						"Only StringLiteral are supported in update statement"
+					);
+				}
+				const name = item.left.accept(this);
+				const value = item.right.accept(this);
+				return { ...acc, ...name };
+			}
+			throw new Error("Expression not supported");
+		}, {} as SchemasObject);
+		return {
+			put: {
+				tags: [stmt.table?.toLiteral()!],
+				responses: {
+					"200": {
+						description: "",
+						content: {
+							"application/json": {
+								schema: { properties: properties },
+							},
+						},
+					} as openapi.ResponseObject,
+				},
+				requestBody: {
+					description: "",
+					required: true,
+					content: {
+						"application/json": {
+							schema: { properties: properties },
+						},
+					},
+				},
+			},
+		};
+	}
 	public visitSelectStmt(stmt: SelectStatement): openapi.PathItemObject {
 		const properties = stmt.columns.reduce(
 			(acc, e) => ({ ...acc, ...e.accept(this) }),

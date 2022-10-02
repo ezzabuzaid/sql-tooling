@@ -43,6 +43,11 @@ export class Parser {
 					tree.push(createStatement);
 					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 					break;
+				case TokenType.UPDATE:
+					let updateStatement = this._updateStatement();
+					tree.push(updateStatement);
+					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+					break;
 				case TokenType.SEMICOLON:
 				case TokenType.EOF:
 					this._advance();
@@ -117,6 +122,27 @@ export class Parser {
 			defaultValue
 		);
 		return columnDef;
+	}
+
+	private _updateStatement(): Statement {
+		this._advance();
+		const table = this._expression();
+		this._consume(TokenType.SET, "SET keyword is missing.");
+		const columns: Expression[] = [];
+		let where: Expression | undefined;
+		do {
+			columns.push(this._expression());
+		} while (this._match(TokenType.COMMA));
+		if (this._match(TokenType.WHERE)) {
+			where = this._expression();
+		}
+		const statement = factory.createUpdateStatement(
+			table,
+			columns,
+			undefined,
+			where
+		);
+		return statement;
 	}
 
 	private _createStatement(): Statement {

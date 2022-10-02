@@ -13,6 +13,7 @@ import {
 	CreateStatement,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 
 export abstract class Visitor<R> {
@@ -30,6 +31,7 @@ export abstract class Visitor<R> {
 	public abstract visitIdentifier(expr: Identifier): R;
 	public abstract visitSelectStmt(stmt: SelectStatement): R;
 	public abstract visitCreateStmt(stmt: CreateStatement): R;
+	public abstract visitUpdateStmt(stmt: UpdateStatement): R;
 	public abstract visitColumnDefinition(definition: ColumnDefinition): R;
 	public abstract visitGroupByExpr(expr: GroupByExpression, context?: any): R;
 	public abstract visitLimitExpr(expr: LimitExpression, context?: any): R;

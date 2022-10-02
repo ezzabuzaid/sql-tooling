@@ -15,6 +15,7 @@ import {
 	CreateStatement,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Factory } from "../factory/factory";
 import { Visitor } from "./visitor";
@@ -22,6 +23,9 @@ const factory = new Factory();
 
 type Node = Expression | Statement | Identifier;
 export class MutateVisitor extends Visitor<Node> {
+	public visitUpdateStmt(stmt: UpdateStatement): Node {
+		throw new Error("Method not implemented.");
+	}
 	public visitColumnDefinition(definition: ColumnDefinition): Node {
 		throw new Error("Method not implemented.");
 	}

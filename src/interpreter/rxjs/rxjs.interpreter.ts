@@ -32,11 +32,15 @@ import {
 	ColumnDefinition,
 	CreateStatement,
 } from "../../classes/statements/create.statements";
+import { UpdateStatement } from "../../classes/statements/update.statements";
 import { UnaryExpression } from "../../classes/unary.expression";
 import { AGGREGATE_FUNCTIONS, TokenType } from "../../tokenizer";
 import default_callHandler from "./default_call.handler";
 
 export class RxJsInterpreter extends Visitor<Observable<any>> {
+	public visitUpdateStmt(stmt: UpdateStatement): Observable<any> {
+		throw new Error("Method not implemented.");
+	}
 	public visitColumnDefinition(definition: ColumnDefinition): Observable<any> {
 		throw new Error("Method not implemented.");
 	}

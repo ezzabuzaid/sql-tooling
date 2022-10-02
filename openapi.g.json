@@ -2,6 +2,7 @@
 	"paths": {
 		"/sql": {
 			"get": {
+				"tags": ["BasicTutorial"],
 				"responses": {
 					"200": {
 						"description": "",
@@ -12,6 +13,38 @@
 										"Id": { "type": "integer" },
 										"Name": { "type": "string" }
 									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"put": {
+				"tags": ["tutorial"],
+				"responses": {
+					"200": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"Name": { "type": "string" },
+										"Age": { "type": "integer" }
+									}
+								}
+							}
+						}
+					}
+				},
+				"requestBody": {
+					"description": "",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"Name": { "type": "string" },
+									"Age": { "type": "integer" }
 								}
 							}
 						}
