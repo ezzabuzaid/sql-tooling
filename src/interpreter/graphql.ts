@@ -9,20 +9,42 @@ import { BooleanLiteral } from "../classes/literals/boolean.literal";
 import { NullLiteral } from "../classes/literals/null.literal";
 import { NumericLiteral } from "../classes/literals/numeric.literal";
 import { StringLiteral } from "../classes/literals/string.literal";
+import { Statement } from "../classes/statement";
 import {
 	ColumnDefinition,
 	CreateStatement,
+	DataType,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
+import { ViewStatement } from "../classes/statements/view.statements";
 import { UnaryExpression } from "../classes/unary.expression";
+import { TokenType } from "../tokenizer";
 import { Visitor } from "./visitor";
 
 export class GraphQlVisitor extends Visitor<string> {
-	public visitColumnDefinition(definition: ColumnDefinition): string {
+	private _schema: Record<string, string> = {};
+	public visitUpdateStmt(stmt: UpdateStatement): string {
 		throw new Error("Method not implemented.");
 	}
-	public visitCreateStmt(stmt: CreateStatement): string {
-		throw new Error("Method not implemented.");
+	public visitColumnDefinition(definition: ColumnDefinition): any {
+		const type: Record<DataType, string> = {
+			[TokenType.INTEGER]: "Int",
+			[TokenType.TEXT]: "String",
+			[TokenType.REAL]: "Float",
+			[TokenType.BOOL]: "Boolean",
+			[TokenType.DATE]: "String",
+		};
+		return {
+			[definition.name.text]: type[definition.dataType.type],
+		};
+	}
+	public visitCreateStmt(stmt: CreateStatement): any {
+		const defs = stmt.columns.reduce(
+			(acc, item) => ({ ...acc, ...item.accept(this) }),
+			{}
+		);
+		this._schema = defs;
 	}
 	public visitLimitExpr(expr: LimitExpression, context?: any): string {
 		throw new Error("Method not implemented.");
@@ -46,10 +68,24 @@ export class GraphQlVisitor extends Visitor<string> {
 	public visitNumericLiteralExpr(expr: NumericLiteral): string {
 		return `${expr.value}`;
 	}
-	public visitBinaryExpr(expr: BinaryExpression, context: any): string {
+
+	public visitBinaryExpr(expr: BinaryExpression, fromView: boolean): string {
+		let operator: string;
+		switch (expr.operator.type) {
+			case TokenType.EQUAL_EQUAL:
+				operator = ":";
+				break;
+			default:
+				throw new Error("Unsupported binary token");
+		}
+		if (!fromView) {
+			const left = expr.left.accept(this);
+			const right = expr.right.accept(this);
+			return `${left} ${operator} ${right}`;
+		}
 		const left = expr.left.accept(this);
 		const right = expr.right.accept(this);
-		return `${left} ${expr.operator.lexeme} ${right}`;
+		return `${right} ${operator} ${this._schema[left]}`;
 	}
 
 	public visitNullLiteralExpr(expr: NullLiteral): string {
@@ -59,40 +95,47 @@ export class GraphQlVisitor extends Visitor<string> {
 		throw new Error("Method not implemented.");
 	}
 	public visitStringLiteralExpr(expr: StringLiteral): string {
-		return `'${expr.value}'`;
+		if (expr.value.startsWith("$")) {
+			return `${expr.value}`;
+		}
+		return `"${expr.value}"`;
 	}
 	public visitIdentifier(expr: Identifier): string {
-		const alias = expr.alias ? ` as ${expr.alias}` : "";
-		return `${expr.text}${alias}`;
+		return expr.alias ?? expr.text;
 	}
-	public visitSelectStmt(stmt: SelectStatement): string {
+	public visitSelectStmt(stmt: SelectStatement, parent?: Statement): string {
 		const columns = " " + this._parseColumns(stmt.columns);
 		const from = this._formatFrom(stmt.from);
-		const distinct = stmt.distinct ? " distinct" : "";
-		const groupBy = stmt.group?.accept(this) ?? "";
-		const where = stmt.where ? `where ${stmt.where?.accept(this)}` : "";
-		return `query {
-				${from} {
-					${columns}
-				}
-			}`;
-		return (
-			`select${distinct}${columns} ${from} ${where}${groupBy}`.trim() + ";"
-		);
-	}
+		const topLevel = !parent;
+		const where = stmt.where ? stmt.where.accept(this, false) : "";
 
-	public execute(expr: Expression) {
-		return expr.accept(this);
+		const query = `${from.accept(this)}(${where}) {
+					${columns}
+				}`;
+		return topLevel ? `query {${query}}` : query;
+	}
+	public visitViewStmt(stmt: ViewStatement): string {
+		const where = stmt.expression.where
+			? stmt.expression.where.accept(this, true)
+			: "";
+		return `query ${stmt.name.text} (${where}) {
+					${stmt.expression.accept(this, stmt)}
+				}`;
+	}
+	public execute(stms: Statement[]): string {
+		const createStatementIndex = stms[0];
+		if (!(createStatementIndex instanceof CreateStatement)) {
+			throw new Error("CREATE statement is absent.");
+		}
+		createStatementIndex.accept(this);
+		return stms.slice(1).reduce((acc, item) => (acc += item.accept(this)), "");
 	}
 
 	private _formatFrom(from: SelectStatement["from"]) {
-		if (from) {
-			if (from instanceof Identifier) {
-				return `${from.accept(this)}`;
-			}
-			return `from (${from.accept(this)})`;
+		if (!from || from instanceof Expression) {
+			throw new Error("FROM have to be identifier");
 		}
-		return "";
+		return from;
 	}
 
 	private _parseColumns(columns: SelectStatement["columns"]) {
@@ -100,11 +143,11 @@ export class GraphQlVisitor extends Visitor<string> {
 			.map((column) => {
 				const value = column.accept(this);
 				if (column instanceof SelectStatement) {
-					return `(${value})`;
+					throw new Error("Column name cannot be an expression");
 				}
-				return value;
+				return value.split(".").at(-1);
 			})
-			.join(", ");
+			.join("\n");
 	}
 }
 
