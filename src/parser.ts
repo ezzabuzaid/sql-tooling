@@ -18,6 +18,7 @@ import {
 	DataType,
 	PrimaryKey,
 } from "./classes/statements/create.statements";
+import { SelectStatement } from "./classes/statements/select.statements";
 import { UnknownToken } from "./errors/unknown_token.error";
 import { Factory } from "./factory/factory";
 import { IToken, TokenType } from "./tokenizer";
@@ -39,9 +40,16 @@ export class Parser {
 					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 					break;
 				case TokenType.CREATE:
-					let createStatement = this._createStatement();
-					tree.push(createStatement);
-					this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+					this._advance();
+					if (this._check(TokenType.VIEW)) {
+						let viewStatement = this._createView();
+						tree.push(viewStatement);
+						this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+					} else {
+						let createStatement = this._createStatement();
+						tree.push(createStatement);
+						this._consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+					}
 					break;
 				case TokenType.UPDATE:
 					let updateStatement = this._updateStatement();
@@ -145,12 +153,29 @@ export class Parser {
 		return statement;
 	}
 
-	private _createStatement(): Statement {
+	private _createView(): Statement {
+		this._consume(
+			TokenType.VIEW,
+			`CREATE keyword should be followed by TABLE or VIEW keyword.`
+		);
+		const tableNameToken = this._currentToken;
 		this._advance();
+		this._consume(
+			TokenType.AS,
+			`VIEW keyword should be followed by AS keyword.`
+		);
+		const statement = factory.createViewStatement(
+			factory.createIdentifier(tableNameToken.lexeme),
+			this._selectStatement()
+		);
+		return statement;
+	}
+
+	private _createStatement(): Statement {
 		let temp = false;
 		this._consume(
 			TokenType.TABLE,
-			`CREATE keyword should be followed by TABLE keyword.`
+			`CREATE keyword should be followed by TABLE or VIEW keyword.`
 		);
 		if (this._match(TokenType.TEMP)) {
 			temp = true;
@@ -184,7 +209,7 @@ export class Parser {
 		return statement;
 	}
 
-	private _selectStatement(): Statement {
+	private _selectStatement(): SelectStatement {
 		this._advance();
 		const statement = factory.createSelectStatement([]);
 		if (this._match(TokenType.DISTINCT)) {

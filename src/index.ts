@@ -1,6 +1,4 @@
-import { writeFileSync } from "fs";
 import { Factory } from "./factory/factory";
-import { OpenApiVisitor } from "./interpreter/openapi";
 import { Parser } from "./parser";
 import { Tokenizer } from "./tokenizer";
 const program = `
@@ -21,19 +19,57 @@ UPDATE tutorial
 SET Name = '?', Age = '?'
 WHERE Id = 'CURRENT';
 --
+
+CREATE VIEW v_tracks
+AS
+SELECT
+	trackid,
+	tracks.name,
+	albums.Title AS album,
+	media_types.Name AS media,
+	genres.Name AS genres
+FROM
+	tracks;
 `;
-const tokenizer = new Tokenizer(program);
-const tokens = tokenizer.tokenize();
-const parser = new Parser(tokens);
-const ast = parser.parse();
-console.log(JSON.stringify(ast, null, 2));
+const ast = getAst(program);
+function getAst(program: string) {
+	const tokenizer = new Tokenizer(program);
+	const tokens = tokenizer.tokenize();
+	const parser = new Parser(tokens);
+	return parser.parse();
+}
+// console.log(JSON.stringify(ast, null, 2));
 const factory = new Factory();
-const openApi = new OpenApiVisitor().execute(ast, {
-	title: "SQL Magic",
-	version: "1.0.0",
-});
-writeFileSync("openapi.g.json", JSON.stringify(openApi), "utf-8");
-// writeFileSync("output.graphql", new GraphQlVisitor().execute(ast[0]), "utf-8");
+// const openApi = new OpenApiVisitor().execute(ast, {
+// 	title: "SQL Magic",
+// 	version: "1.0.0",
+// });
+// writeFileSync("openapi.g.json", JSON.stringify(openApi), "utf-8");
+// writeFileSync(
+// 	"output.graphql",
+// 	new GraphQlVisitor().execute(
+// 		getAst(
+// 			`
+// 			CREATE TABLE tasks(
+// 				id INT NOT NULL,
+// 				text Text NOT NULL,
+// 				title TEXT NOT NULL,
+// 				Primary key (id)
+// 			);
+
+// 			select id, title, completed
+// 			from tasks as getTask
+// 			where id = '0x3';
+
+// 			select username
+// 			from tasks as getUser
+// 			where username = 'dgraphlabs';
+
+// 			`
+// 		)
+// 	),
+// 	"utf-8"
+// );
 
 // walk(
 // 	factory.createSelectStatement(

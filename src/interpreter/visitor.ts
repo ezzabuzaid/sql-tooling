@@ -14,6 +14,7 @@ import {
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UpdateStatement } from "../classes/statements/update.statements";
+import { ViewStatement } from "../classes/statements/view.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 
 export abstract class Visitor<R> {
@@ -29,8 +30,9 @@ export abstract class Visitor<R> {
 	public abstract visitBooleanLiteralExpr(expr: BooleanLiteral): R;
 	public abstract visitStringLiteralExpr(expr: StringLiteral): R;
 	public abstract visitIdentifier(expr: Identifier): R;
-	public abstract visitSelectStmt(stmt: SelectStatement): R;
+	public abstract visitSelectStmt(stmt: SelectStatement, context?: any): R;
 	public abstract visitCreateStmt(stmt: CreateStatement): R;
+	public abstract visitViewStmt(stmt: ViewStatement): R;
 	public abstract visitUpdateStmt(stmt: UpdateStatement): R;
 	public abstract visitColumnDefinition(definition: ColumnDefinition): R;
 	public abstract visitGroupByExpr(expr: GroupByExpression, context?: any): R;

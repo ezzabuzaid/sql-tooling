@@ -78,6 +78,7 @@ export enum TokenType {
 	DATE = 940,
 	UPDATE = 941,
 	SET = 942,
+	VIEW = 943,
 
 	// Clauses
 	ORDER = 1201,

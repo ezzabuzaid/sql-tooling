@@ -24,6 +24,7 @@ import {
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UpdateStatement } from "../classes/statements/update.statements";
+import { ViewStatement } from "../classes/statements/view.statements";
 import { UnaryExpression, UnaryToken } from "../classes/unary.expression";
 import { UnknownTokenType } from "../errors/unknown_token_type.error";
 import { IToken, TokenType } from "../tokenizer";
@@ -53,6 +54,7 @@ export const keywords: Record<string, TokenType> = {
 	as: TokenType.AS,
 	by: TokenType.BY,
 	select: TokenType.SELECT,
+	view: TokenType.VIEW,
 	create: TokenType.CREATE,
 	table: TokenType.TABLE,
 	integer: TokenType.INTEGER,
@@ -121,6 +123,14 @@ export class Factory {
 	): Expression {
 		const expression = new UnaryExpression(operator, right);
 		return expression;
+	}
+
+	public createViewStatement(
+		name: Identifier,
+		selectStatement: SelectStatement
+	): ViewStatement {
+		const statement = new ViewStatement(name, selectStatement);
+		return statement;
 	}
 
 	public createCreateStatement(

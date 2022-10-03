@@ -18,6 +18,7 @@ import {
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
 import { UpdateStatement } from "../classes/statements/update.statements";
+import { ViewStatement } from "../classes/statements/view.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { TokenType } from "../tokenizer";
 import { Visitor } from "./visitor";
@@ -25,6 +26,9 @@ import { Visitor } from "./visitor";
 type Node = any;
 
 export class OpenApiVisitor extends Visitor<Node> {
+	public visitViewStmt(stmt: ViewStatement) {
+		throw new Error("Method not implemented.");
+	}
 	private _schema?: openapi.SchemasObject;
 	private _builder?: openapi.OpenApiBuilder;
 	public visitCallExpr(expr: CallExpression, row: Record<string, any>): Node {

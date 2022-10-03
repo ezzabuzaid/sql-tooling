@@ -14,12 +14,20 @@ import {
 	CreateStatement,
 } from "../classes/statements/create.statements";
 import { SelectStatement } from "../classes/statements/select.statements";
+import { UpdateStatement } from "../classes/statements/update.statements";
+import { ViewStatement } from "../classes/statements/view.statements";
 import { UnaryExpression } from "../classes/unary.expression";
 import { Visitor } from "./visitor";
 
 type Node = Record<string, any>;
 
 class WalkVisitor extends Visitor<Node> {
+	public visitViewStmt(stmt: ViewStatement): Node {
+		throw new Error("Method not implemented.");
+	}
+	public visitUpdateStmt(stmt: UpdateStatement): Node {
+		throw new Error("Method not implemented.");
+	}
 	public visitColumnDefinition(definition: ColumnDefinition): Node {
 		throw new Error("Method not implemented.");
 	}
