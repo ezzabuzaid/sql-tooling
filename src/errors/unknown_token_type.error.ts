@@ -1,10 +1,10 @@
-import { TokenType } from "../tokenizer";
+import { TokenType } from '../token';
 
 export class UnknownTokenType extends Error {
-	constructor(type: TokenType) {
-		super(`Unknown token - Type: ${type}`);
+  constructor(type: TokenType) {
+    super(`Unknown token - Type: ${type}`);
 
-		Error.captureStackTrace(this, UnknownTokenType);
-		this.name = this.constructor.name;
-	}
+    Error.captureStackTrace(this, UnknownTokenType);
+    this.name = this.constructor.name;
+  }
 }
