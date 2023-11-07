@@ -1,5 +1,6 @@
 import { BinaryExpression } from '../classes/binary.expression';
 import { CallExpression } from '../classes/call.expression';
+import { OrderByColumn } from '../classes/column.identifier';
 import { Expression } from '../classes/expression';
 import { GroupByExpression } from '../classes/group_expression';
 import { GroupingExpression } from '../classes/grouping.expression';
@@ -9,6 +10,7 @@ import { BooleanLiteral } from '../classes/literals/boolean.literal';
 import { NullLiteral } from '../classes/literals/null.literal';
 import { NumericLiteral } from '../classes/literals/numeric.literal';
 import { StringLiteral } from '../classes/literals/string.literal';
+import { OrderExpression } from '../classes/order_expression';
 import { Statement } from '../classes/statement';
 import {
   ColumnDefinition,
@@ -24,6 +26,15 @@ import { TokenType } from '../token';
 import { Visitor } from './visitor';
 
 export class GraphQlVisitor extends Visitor<string> {
+  public override visitOrderByColumn(expr: OrderByColumn): string {
+    throw new Error('Method not implemented.');
+  }
+  public override visitOrderByExpr(
+    expr: OrderExpression,
+    context?: any,
+  ): string {
+    throw new Error('Method not implemented.');
+  }
   private _schema: Record<string, string> = {};
   public visitUpdateStmt(stmt: UpdateStatement): string {
     throw new Error('Method not implemented.');

@@ -1,5 +1,6 @@
 import { BinaryExpression } from '../../classes/binary.expression';
 import { CallExpression } from '../../classes/call.expression';
+import { OrderByColumn } from '../../classes/column.identifier';
 import { GroupByExpression } from '../../classes/group_expression';
 import { GroupingExpression } from '../../classes/grouping.expression';
 import { Identifier } from '../../classes/identifier';
@@ -8,6 +9,7 @@ import { BooleanLiteral } from '../../classes/literals/boolean.literal';
 import { NullLiteral } from '../../classes/literals/null.literal';
 import { NumericLiteral } from '../../classes/literals/numeric.literal';
 import { StringLiteral } from '../../classes/literals/string.literal';
+import { OrderExpression } from '../../classes/order_expression';
 import { Statement } from '../../classes/statement';
 import {
   ColumnDefinition,
@@ -44,6 +46,24 @@ export class ODataVisitor extends Visitor<string> {
         return `replace(${args[0]}, ${args[1]}, ${args[2]})`;
       case 'instr':
         return `indexof(${args[0]}, ${args[1]})`;
+      case 'strftime': {
+        const map: Record<string, string> = {
+          "'%d'": 'day',
+          "'%m'": 'month',
+          "'%Y'": 'year',
+          "'%H'": 'hour',
+          "'%M'": 'minute',
+          "'%S'": 'second',
+          "'%H:%M:%S'": 'time',
+          "'%Y-%m-%d'": 'date',
+        };
+        const fn = map[args[0]];
+        if (!fn) {
+          throw new Error(`Function ${fn} not implemented.`);
+        }
+        const arg = args[1];
+        return `${fn}(${arg})`;
+      }
       default:
         throw new Error(`Function ${fn} not implemented.`);
     }
@@ -176,9 +196,27 @@ export class ODataVisitor extends Visitor<string> {
       $filter = `$filter=${where}`;
     }
     if (!stmt.from) throw new Error('No resource specified');
+    let $top = '';
+    if (stmt.limit) {
+      $top = stmt.limit.accept(this);
+    }
+
+    let $orderby = '';
+    if (stmt.order) {
+      $orderby = `$orderby=${stmt.order.accept(this)}`;
+    }
 
     const resource = stmt.from.accept(this);
-    return `/${resource}?${$select}${$filter}`;
+
+    return `/${resource}?${[
+      $select,
+      $filter,
+      $top,
+      $orderby,
+      // $count,
+    ]
+      .filter((item) => item)
+      .join('&')}`;
   }
   public override visitCreateStmt(stmt: CreateStatement): string {
     throw new Error('Method not implemented.');
@@ -199,7 +237,21 @@ export class ODataVisitor extends Visitor<string> {
     throw new Error('Method not implemented.');
   }
   public override visitLimitExpr(expr: LimitExpression, context?: any): string {
-    throw new Error('Method not implemented.');
+    const limit = expr.expression.accept(this);
+    const offset = expr.offset?.accept(this) ?? '';
+    return `$top=${limit}&${offset ? `$skip=${offset}` : ''}`;
+  }
+  public override visitOrderByExpr(
+    expr: OrderExpression,
+    context?: any,
+  ): string {
+    const columns = expr.columns.map((item) => item.accept(this));
+    return columns.join(',');
+  }
+
+  public override visitOrderByColumn(expr: OrderByColumn): string {
+    const column = expr.expression.accept(this);
+    return `${column} ${expr.direction}`;
   }
 
   public execute(stmts: Statement[]) {

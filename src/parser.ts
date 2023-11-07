@@ -18,8 +18,9 @@ import {
   PrimaryKey,
 } from './classes/statements/create.statements';
 import { SelectStatement } from './classes/statements/select.statements';
+import { UnknownPrimary } from './errors/unknown_primary.error';
 import { UnknownToken } from './errors/unknown_token.error';
-import { Factory } from './factory/factory';
+import { Factory, getKeyByValue, keywords } from './factory/factory';
 import { IToken, TokenType } from './token';
 
 const factory = new Factory();
@@ -223,7 +224,17 @@ export class Parser {
     // if (this._match(TokenType.IDENTIFIER, TokenType.STRING))
     // else {
     do {
-      statement.columns.push(this._expression());
+      const keyword = getKeyByValue(keywords, this._currentToken.type);
+      if (keyword) {
+        // allow keywords as column names
+        statement.columns.push(
+          factory.createIdentifier(this._currentToken.lexeme),
+        );
+        this._advance();
+      } else {
+        const columnName = this._expression();
+        statement.columns.push(columnName);
+      }
     } while (this._match(TokenType.COMMA));
     // }
 
@@ -299,7 +310,6 @@ export class Parser {
         statement.having.columns.push(this._expression());
       } while (this._match(TokenType.COMMA));
     }
-
     if (this._match(TokenType.ORDER)) {
       this._consume(TokenType.BY, "Expect 'BY' after ORDER keyword.");
       statement.order = new OrderExpression();
@@ -395,7 +405,7 @@ export class Parser {
       }
     }
 
-    throw new Error(`Invalid primary: ${token.type} - ${token.lexeme}`);
+    throw new UnknownPrimary(token);
   }
 
   private _finishCall(callee: Expression): Expression {

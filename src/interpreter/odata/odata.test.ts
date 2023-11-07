@@ -118,7 +118,46 @@ const data: {
   {
     sql: "SELECT * FROM Employees WHERE FirstName || ' ' || LastName = 'John Doe';",
     url: "/Employees?$filter=concat(concat(FirstName, ' '), LastName) eq 'John Doe'",
-    only: true,
+  },
+  {
+    url: `/Appointments?$filter=time(StartTime) eq '12:00:00'`,
+    sql: "SELECT * FROM Appointments WHERE strftime('%H:%M:%S', StartTime) = '12:00:00';",
+  },
+  {
+    url: `/Tasks?$filter=day(DueDate) eq '15'`,
+    sql: `SELECT * FROM Tasks WHERE strftime('%d', DueDate) = '15';`,
+  },
+  {
+    url: `/Sales?$filter=month(ShipDate) eq '12'`,
+    sql: `SELECT * FROM Sales WHERE strftime('%m', ShipDate) = '12';`,
+  },
+  {
+    url: '/Employees?$filter=year(BirthDate) eq 1978',
+    sql: "SELECT * FROM Employees WHERE strftime('%Y', BirthDate) = 1978;",
+  },
+  {
+    url: '/Sales?$filter=month(ShipDate) eq 12',
+    sql: "SELECT * FROM Sales WHERE strftime('%m', ShipDate) = 12;",
+  },
+  {
+    url: '/Meetings?$filter=hour(StartTime) eq 14',
+    sql: "SELECT * FROM Meetings WHERE strftime('%H', StartTime) = 14;",
+  },
+  {
+    url: '/Messages?$filter=minute(SentTime) eq 30',
+    sql: "SELECT * FROM Messages WHERE strftime('%M', SentTime) = 30;",
+  },
+  {
+    url: '/Events?$filter=second(EndTime) eq 45',
+    sql: "SELECT * FROM Events WHERE strftime('%S', EndTime) = 45;",
+  },
+  {
+    url: `/People?$filter=date(BirthDate) eq '2000-01-01'`,
+    sql: "SELECT * FROM People WHERE strftime('%Y-%m-%d', BirthDate) = '2000-01-01';",
+  },
+  {
+    url: `/Appointments?$filter=time(StartTime) eq '12:00:00'`,
+    sql: "SELECT * FROM Appointments WHERE strftime('%H:%M:%S', StartTime) = '12:00:00';",
   },
 ];
 

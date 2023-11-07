@@ -1,5 +1,6 @@
 import { BinaryExpression } from '../classes/binary.expression';
 import { CallExpression } from '../classes/call.expression';
+import { OrderByColumn } from '../classes/column.identifier';
 import { GroupByExpression } from '../classes/group_expression';
 import { GroupingExpression } from '../classes/grouping.expression';
 import { Identifier } from '../classes/identifier';
@@ -8,6 +9,7 @@ import { BooleanLiteral } from '../classes/literals/boolean.literal';
 import { NullLiteral } from '../classes/literals/null.literal';
 import { NumericLiteral } from '../classes/literals/numeric.literal';
 import { StringLiteral } from '../classes/literals/string.literal';
+import { OrderExpression } from '../classes/order_expression';
 import {
   ColumnDefinition,
   CreateStatement,
@@ -37,4 +39,6 @@ export abstract class Visitor<R> {
   public abstract visitColumnDefinition(definition: ColumnDefinition): R;
   public abstract visitGroupByExpr(expr: GroupByExpression, context?: any): R;
   public abstract visitLimitExpr(expr: LimitExpression, context?: any): R;
+  public abstract visitOrderByExpr(expr: OrderExpression, context?: any): R;
+  public abstract visitOrderByColumn(expr: OrderByColumn): R;
 }

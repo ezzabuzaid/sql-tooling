@@ -28,3 +28,17 @@ This query is synaticaly valid, however, this can pull huge amount of rows, ther
 1. HTTP
 2. CACHE
 3. Pagination (Maybe)
+
+## ODataVisitor
+
+```ts
+const oDataVisitor = new ODataVisitor();
+
+const sql = `SELECT * FROM Sales WHERE strftime('%m', ShipDate) = '12';`;
+const tokenizer = new Tokenizer(sql);
+const tokens = tokenizer.tokenize();
+const parser = new Parser(tokens);
+const ast = parser.parse();
+console.log(oDataVisitor.execute(ast));
+// /Sales?$filter=month(ShipDate) eq '12'
+```
