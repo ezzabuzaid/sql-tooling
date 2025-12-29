@@ -1,44 +1,154 @@
-# Types SQL Query Parser
+# sql-tooling
 
-Hi, this project that meant to be used in my side projects, the soul purpose of it
+A TypeScript SQL parser and transpiler that converts SQL statements into OData, GraphQL, OpenAPI, JSON, RxJS, and back to SQL.
 
-1. Remove the need to create simple API endpoints.
-2. Handle custom query from the frontend without having the API to change.
-3. Meant as replacement of GraphQL.
-4. I always wanted to build Tree Walker interpreter.
+## Installation
 
-The project will do the following tasks mainly:
-
-1. Validate the client query doesn't abuse the server.
-2. Ensure the query is valid "at Compile time" - regulary pulling database info to validate against - (useful as CI task)
-
-Example
-
-```sql
-SELECT name, price FROM Products
-Where price > 25;
+```bash
+npm install
 ```
 
-This query is synaticaly valid, however, this can pull huge amount of rows, therefore the server would refuse any query that doesn't limit the count of returned data.
+## Usage
 
-## Guide
+```typescript
+import { Tokenizer } from './src/tokenizer';
+import { Parser } from './src/parser';
+import { ODataVisitor } from './src/interpreter/odata/odata.visitor';
 
-### Custom Keywords
+const sql = `SELECT * FROM Products WHERE Price > 100 ORDER BY Name ASC`;
 
-1. HTTP
-2. CACHE
-3. Pagination (Maybe)
-
-## ODataVisitor
-
-```ts
-const oDataVisitor = new ODataVisitor();
-
-const sql = `SELECT * FROM Sales WHERE strftime('%m', ShipDate) = '12';`;
 const tokenizer = new Tokenizer(sql);
 const tokens = tokenizer.tokenize();
 const parser = new Parser(tokens);
 const ast = parser.parse();
-console.log(oDataVisitor.execute(ast));
-// /Sales?$filter=month(ShipDate) eq '12'
+
+const odata = new ODataVisitor();
+console.log(odata.execute(ast));
+// Output: /Products?$filter=Price gt 100&$orderby=Name asc
+```
+
+## API Reference
+
+### Tokenizer
+
+Tokenizes a SQL string into an array of tokens.
+
+```typescript
+const tokenizer = new Tokenizer(sql: string);
+const tokens = tokenizer.tokenize(): Token[];
+```
+
+### Parser
+
+Parses tokens into an Abstract Syntax Tree (AST).
+
+```typescript
+const parser = new Parser(tokens: Token[]);
+const ast = parser.parse(): Statement;
+```
+
+### Visitors
+
+| Visitor | Import | Description |
+|---------|--------|-------------|
+| `ODataVisitor` | `./src/interpreter/odata/odata.visitor` | Converts SQL to OData URI |
+| `GraphQLVisitor` | `./src/interpreter/graphql` | Converts SQL to GraphQL query |
+| `OpenAPIVisitor` | `./src/interpreter/openapi` | Generates OpenAPI schema from CREATE TABLE |
+| `JsonInterpreter` | `./src/interpreter/json.interpreter` | Executes SQL against in-memory JSON data |
+| `RxJSInterpreter` | `./src/interpreter/rxjs/rxjs.interpreter` | Generates RxJS Observable chains |
+| `ReverseVisitor` | `./src/interpreter/reverse/reverse.visitor` | Converts AST back to SQL |
+
+Each visitor implements an `execute(ast)` method that transforms the AST into its target format.
+
+## Visitor Examples
+
+### ODataVisitor
+
+```typescript
+import { ODataVisitor } from './src/interpreter/odata/odata.visitor';
+
+const sql = `SELECT * FROM Products WHERE Price > 100 ORDER BY Name ASC`;
+const ast = parse(sql);
+
+const visitor = new ODataVisitor();
+console.log(visitor.execute(ast));
+// Output: /Products?$filter=Price gt 100&$orderby=Name asc
+```
+
+### GraphQLVisitor
+
+```typescript
+import { GraphQlVisitor } from './src/interpreter/graphql';
+
+const sql = `
+  CREATE TABLE Users (id INTEGER, name TEXT);
+  SELECT id, name FROM Users WHERE id = 1;
+`;
+const ast = parse(sql);
+
+const visitor = new GraphQlVisitor();
+console.log(visitor.execute(ast));
+// Output: query { Users(id : Int) { id name } }
+```
+
+### OpenAPIVisitor
+
+```typescript
+import { OpenApiVisitor } from './src/interpreter/openapi';
+
+const sql = `
+  CREATE TABLE Users (id INTEGER, name TEXT, email TEXT);
+  SELECT id, name FROM Users;
+`;
+const ast = parse(sql);
+
+const visitor = new OpenApiVisitor();
+const spec = visitor.execute(ast, { title: 'My API', version: '1.0.0' });
+// Returns OpenAPI 3.0 specification object
+```
+
+### JsonInterpreter
+
+```typescript
+import { JsonInterpreter } from './src/interpreter/json.interpreter';
+
+const data = {
+  users: [
+    { id: 1, name: 'Alice' },
+    { id: 2, name: 'Bob' },
+  ],
+};
+
+const sql = `SELECT name FROM users WHERE id = 1`;
+const ast = parse(sql);
+
+const interpreter = new JsonInterpreter(data);
+console.log(interpreter.execute(ast));
+// Output: [{ name: 'Alice' }]
+```
+
+### ReverseVisitor
+
+```typescript
+import { ReverseVisitor } from './src/interpreter/reverse/reverse.visitor';
+
+const sql = `SELECT id, name FROM users WHERE active = true`;
+const ast = parse(sql);
+
+const visitor = new ReverseVisitor();
+console.log(visitor.execute(ast));
+// Output: select id, name from users where active = true;
+```
+
+### RxJSInterpreter
+
+```typescript
+import { RxJsInterpreter } from './src/interpreter/rxjs/rxjs.interpreter';
+
+const sql = `SELECT name FROM users WHERE active = true`;
+const ast = parse(sql);
+
+const interpreter = new RxJsInterpreter();
+interpreter.execute(ast).subscribe(console.log);
+// Emits filtered results as Observable
 ```
